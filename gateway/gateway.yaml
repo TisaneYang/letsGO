@@ -1,0 +1,92 @@
+# ========================================
+# Gateway Configuration
+# ========================================
+
+# Service name - identifies this service in logs and monitoring
+Name: gateway
+
+# Host and Port - where the gateway listens for incoming requests
+Host: 0.0.0.0  # 0.0.0.0 means listen on all network interfaces
+Port: 8888     # Gateway will be accessible at http://localhost:8888
+
+# ========================================
+# Logging Configuration
+# ========================================
+Log:
+  ServiceName: gateway
+  Mode: file              # Logs will be written to files (also: console, volume)
+  Path: logs              # Log files directory
+  Level: info             # Log level: debug, info, error, severe
+  Compress: false         # Whether to compress old log files
+  KeepDays: 7            # Keep log files for 7 days
+  StackCooldownMillis: 100
+
+# ========================================
+# Service Discovery - RPC Service Connections
+# ========================================
+# Each microservice registers itself in etcd
+# Gateway discovers services dynamically through etcd
+
+# User Service RPC Configuration
+UserRpc:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379    # etcd server address
+    Key: user.rpc         # Service key in etcd
+
+# Product Service RPC Configuration
+ProductRpc:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: product.rpc
+
+# Cart Service RPC Configuration
+CartRpc:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: cart.rpc
+
+# Order Service RPC Configuration
+OrderRpc:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: order.rpc
+
+# Payment Service RPC Configuration
+PaymentRpc:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: payment.rpc
+
+# ========================================
+# JWT Authentication Configuration
+# ========================================
+Auth:
+  AccessSecret: letsgo-jwt-secret-key-change-in-production-2025  # JWT signing key (CHANGE THIS!)
+  AccessExpire: 86400    # Token expiration in seconds (86400 = 24 hours)
+
+# ========================================
+# Redis Configuration (for caching and sessions)
+# ========================================
+Redis:
+  Host: 127.0.0.1:6379
+  Type: node             # node = single Redis, cluster = Redis cluster
+  Pass: ""               # Redis password (empty for no password)
+  DB: 0                  # Redis database number (0-15)
+
+# ========================================
+# Timeout Configuration
+# ========================================
+Timeout: 30000           # Request timeout in milliseconds (30 seconds)
+
+# ========================================
+# Rate Limiting (Optional - prevents API abuse)
+# ========================================
+# Uncomment to enable rate limiting
+# RateLimit:
+#   Seconds: 1           # Time window in seconds
+#   Quota: 100           # Max requests per window

@@ -1,0 +1,224 @@
+# ========================================
+# letsGO E-commerce Platform
+# Docker Compose for Middleware Services
+# ========================================
+# This file sets up all required middleware:
+# - PostgreSQL (relational database)
+# - MongoDB (document database)
+# - Redis (cache & session store)
+# - Kafka & Zookeeper (message queue)
+# - etcd (service discovery)
+
+version: '3.8'
+
+services:
+  # ========================================
+  # PostgreSQL - Primary Relational Database
+  # ========================================
+  # Stores structured data: users, orders, payments, product metadata
+  postgres:
+    image: postgres:15-alpine
+    container_name: letsgo-postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./deploy/docker/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - letsgo-network
+
+  # ========================================
+  # MongoDB - Document Database
+  # ========================================
+  # Stores flexible data: product details, attributes, reviews
+  mongodb:
+    image: mongo:6
+    container_name: letsgo-mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+    volumes:
+      - mongodb-data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - letsgo-network
+
+  # ========================================
+  # Redis - In-Memory Cache & Session Store
+  # ========================================
+  # Used for: shopping cart, session cache, hot product cache
+  redis:
+    image: redis:7-alpine
+    container_name: letsgo-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - letsgo-network
+
+  # ========================================
+  # Zookeeper - Required by Kafka
+  # ========================================
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: letsgo-zookeeper
+    restart: always
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+      - zookeeper-logs:/var/lib/zookeeper/log
+    networks:
+      - letsgo-network
+
+  # ========================================
+  # Kafka - Message Queue
+  # ========================================
+  # Used for: async order processing, event notifications, inventory updates
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: letsgo-kafka
+    restart: always
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - letsgo-network
+
+  # ========================================
+  # etcd - Service Discovery & Configuration
+  # ========================================
+  # Microservices register themselves here for discovery
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.9
+    container_name: letsgo-etcd
+    restart: always
+    ports:
+      - "2379:2379"
+      - "2380:2380"
+    environment:
+      ETCD_NAME: etcd0
+      ETCD_INITIAL_ADVERTISE_PEER_URLS: http://etcd:2380
+      ETCD_LISTEN_PEER_URLS: http://0.0.0.0:2380
+      ETCD_ADVERTISE_CLIENT_URLS: http://etcd:2379
+      ETCD_LISTEN_CLIENT_URLS: http://0.0.0.0:2379
+      ETCD_INITIAL_CLUSTER: etcd0=http://etcd:2380
+      ETCD_INITIAL_CLUSTER_STATE: new
+      ETCD_INITIAL_CLUSTER_TOKEN: etcd-cluster
+    volumes:
+      - etcd-data:/etcd-data
+    healthcheck:
+      test: ["CMD", "etcdctl", "endpoint", "health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - letsgo-network
+
+  # ========================================
+  # Adminer - Database Management UI (Optional)
+  # ========================================
+  # Web interface to manage PostgreSQL
+  # Access at: http://localhost:8080
+  adminer:
+    image: adminer:latest
+    container_name: letsgo-adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - letsgo-network
+
+  # ========================================
+  # Mongo Express - MongoDB Management UI (Optional)
+  # ========================================
+  # Web interface to manage MongoDB
+  # Access at: http://localhost:8081
+  mongo-express:
+    image: mongo-express:latest
+    container_name: letsgo-mongo-express
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: admin123
+      ME_CONFIG_MONGODB_URL: mongodb://admin:admin123@mongodb:27017/
+    depends_on:
+      - mongodb
+    networks:
+      - letsgo-network
+
+# ========================================
+# Persistent Volumes
+# ========================================
+# Data is stored in Docker volumes to survive container restarts
+volumes:
+  postgres-data:
+    driver: local
+  mongodb-data:
+    driver: local
+  redis-data:
+    driver: local
+  zookeeper-data:
+    driver: local
+  zookeeper-logs:
+    driver: local
+  kafka-data:
+    driver: local
+  etcd-data:
+    driver: local
+
+# ========================================
+# Network
+# ========================================
+# All services communicate through this network
+networks:
+  letsgo-network:
+    driver: bridge

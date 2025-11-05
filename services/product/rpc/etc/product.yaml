@@ -1,0 +1,76 @@
+# ========================================
+# Product RPC Service Configuration
+# ========================================
+
+Name: product.rpc
+ListenOn: 0.0.0.0:9002
+
+# ========================================
+# Service Registration
+# ========================================
+Etcd:
+  Hosts:
+    - 127.0.0.1:2379
+  Key: product.rpc
+
+# ========================================
+# PostgreSQL - Product Core Data
+# ========================================
+# Product basic info, price, stock stored in PostgreSQL
+DB:
+  DataSource: postgres://postgres:postgres@127.0.0.1:5432/letsgo_product?sslmode=disable
+
+DBPool:
+  MaxOpenConns: 30
+  MaxIdleConns: 10
+  ConnMaxLifetime: 3600
+
+# ========================================
+# MongoDB - Product Extended Data
+# ========================================
+# Product descriptions, attributes, reviews stored in MongoDB
+# MongoDB is better for flexible, document-style data
+Mongo:
+  Url: mongodb://localhost:27017
+  Database: letsgo_product
+  Timeout: 10000           # Connection timeout in milliseconds
+
+# ========================================
+# Elasticsearch (Optional - for advanced search)
+# ========================================
+# Uncomment if you want full-text search capabilities
+# Elasticsearch:
+#   Addresses:
+#     - http://127.0.0.1:9200
+#   Index: products
+
+# ========================================
+# Redis Cache
+# ========================================
+# Cache hot products and search results
+Redis:
+  Host: 127.0.0.1:6379
+  Type: node
+  Pass: ""
+  DB: 2                  # Use database 2 for product service
+
+# Cache settings
+Cache:
+  ProductExpire: 3600    # Product detail cache for 1 hour
+  ListExpire: 300        # Product list cache for 5 minutes
+  SearchExpire: 300      # Search results cache for 5 minutes
+
+# ========================================
+# Logging
+# ========================================
+Log:
+  ServiceName: product.rpc
+  Mode: file
+  Path: logs
+  Level: info
+  KeepDays: 7
+
+# ========================================
+# Timeout
+# ========================================
+Timeout: 5000

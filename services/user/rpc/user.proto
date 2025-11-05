@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+// Package name for generated Go code
+package user;
+
+// Generate Go code options
+option go_package = "./user";
+
+// ========================================
+// User Service Definition
+// ========================================
+// This service handles all user-related operations
+// It will be called by the API gateway via RPC
+
+service User {
+  // Register a new user account
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+
+  // Login and get JWT token
+  rpc Login(LoginRequest) returns (LoginResponse);
+
+  // Get user information by user ID
+  rpc GetUserInfo(GetUserInfoRequest) returns (GetUserInfoResponse);
+
+  // Update user profile
+  rpc UpdateProfile(UpdateProfileRequest) returns (UpdateProfileResponse);
+
+  // Verify JWT token validity
+  rpc VerifyToken(VerifyTokenRequest) returns (VerifyTokenResponse);
+}
+
+// ========================================
+// Request/Response Messages
+// ========================================
+
+// Register Request
+message RegisterRequest {
+  string username = 1;  // Unique username
+  string password = 2;  // Plain password (will be hashed in service)
+  string email = 3;     // Email address
+  string phone = 4;     // Phone number (optional)
+}
+
+message RegisterResponse {
+  int64 user_id = 1;    // Created user ID
+  string token = 2;     // JWT token for immediate login
+}
+
+// Login Request
+message LoginRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  int64 user_id = 1;
+  string token = 2;
+}
+
+// Get User Info Request
+message GetUserInfoRequest {
+  int64 user_id = 1;    // User ID to query
+}
+
+message GetUserInfoResponse {
+  int64 user_id = 1;
+  string username = 2;
+  string email = 3;
+  string phone = 4;
+  string avatar = 5;
+  int64 created_at = 6;  // Unix timestamp
+  int64 updated_at = 7;
+}
+
+// Update Profile Request
+message UpdateProfileRequest {
+  int64 user_id = 1;
+  string email = 2;      // Empty string means no change
+  string phone = 3;      // Empty string means no change
+  string avatar = 4;     // Empty string means no change
+}
+
+message UpdateProfileResponse {
+  bool success = 1;
+}
+
+// Verify Token Request (used by other services)
+message VerifyTokenRequest {
+  string token = 1;      // JWT token to verify
+}
+
+message VerifyTokenResponse {
+  bool valid = 1;        // Whether token is valid
+  int64 user_id = 2;     // User ID extracted from token
+  int64 expire_at = 3;   // Token expiration timestamp
+}

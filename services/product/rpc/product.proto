@@ -1,0 +1,140 @@
+syntax = "proto3";
+
+package product;
+
+option go_package = "./product";
+
+// ========================================
+// Product Service Definition
+// ========================================
+// Handles product catalog, inventory, and search
+
+service Product {
+  // Add new product (admin)
+  rpc AddProduct(AddProductRequest) returns (AddProductResponse);
+
+  // Update product information (admin)
+  rpc UpdateProduct(UpdateProductRequest) returns (UpdateProductResponse);
+
+  // Get product detail
+  rpc GetProduct(GetProductRequest) returns (GetProductResponse);
+
+  // List products with pagination
+  rpc ListProducts(ListProductsRequest) returns (ListProductsResponse);
+
+  // Search products by keyword
+  rpc SearchProducts(SearchProductsRequest) returns (SearchProductsResponse);
+
+  // Update product stock (called by order service)
+  rpc UpdateStock(UpdateStockRequest) returns (UpdateStockResponse);
+
+  // Check if products are in stock (batch check)
+  rpc CheckStock(CheckStockRequest) returns (CheckStockResponse);
+}
+
+// ========================================
+// Messages
+// ========================================
+
+message AddProductRequest {
+  string name = 1;
+  string description = 2;
+  double price = 3;
+  int64 stock = 4;
+  string category = 5;
+  repeated string images = 6;   // Array of image URLs
+  string attributes = 7;         // JSON string of product attributes
+}
+
+message AddProductResponse {
+  int64 product_id = 1;
+}
+
+message UpdateProductRequest {
+  int64 id = 1;
+  string name = 2;               // Empty = no change
+  string description = 3;
+  double price = 4;              // 0 = no change
+  int64 stock = 5;               // -1 = no change
+  string category = 6;
+  repeated string images = 7;
+  string attributes = 8;
+}
+
+message UpdateProductResponse {
+  bool success = 1;
+}
+
+message GetProductRequest {
+  int64 id = 1;
+}
+
+message GetProductResponse {
+  ProductInfo product = 1;
+}
+
+message ListProductsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string category = 3;           // Filter by category (empty = all)
+  string sort_by = 4;            // price, created, sales
+  string order = 5;              // asc, desc
+}
+
+message ListProductsResponse {
+  int64 total = 1;
+  repeated ProductInfo products = 2;
+}
+
+message SearchProductsRequest {
+  string keyword = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message SearchProductsResponse {
+  int64 total = 1;
+  repeated ProductInfo products = 2;
+}
+
+// Update stock (reduce after order, increase after cancellation)
+message UpdateStockRequest {
+  int64 product_id = 1;
+  int64 quantity = 2;            // Positive = increase, Negative = decrease
+}
+
+message UpdateStockResponse {
+  bool success = 1;
+  int64 new_stock = 2;           // Stock after update
+}
+
+// Batch check stock availability
+message CheckStockRequest {
+  repeated StockItem items = 1;
+}
+
+message CheckStockResponse {
+  bool available = 1;            // All items available?
+  repeated StockItem items = 2;  // Items with current stock info
+}
+
+message StockItem {
+  int64 product_id = 1;
+  int64 required_quantity = 2;   // How many needed
+  int64 available_stock = 3;     // How many in stock
+}
+
+// Product information model
+message ProductInfo {
+  int64 id = 1;
+  string name = 2;
+  string description = 3;
+  double price = 4;
+  int64 stock = 5;
+  string category = 6;
+  repeated string images = 7;
+  string attributes = 8;
+  int64 sales = 9;               // Total sales count
+  int64 created_at = 10;
+  int64 updated_at = 11;
+}

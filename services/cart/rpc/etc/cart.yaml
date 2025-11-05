@@ -1,0 +1,57 @@
+# ========================================
+# Cart RPC Service Configuration
+# ========================================
+
+Name: cart.rpc
+ListenOn: 0.0.0.0:9003
+
+# ========================================
+# Service Registration
+# ========================================
+Etcd:
+  Hosts:
+    - 127.0.0.1:2379
+  Key: cart.rpc
+
+# ========================================
+# Redis - Cart Storage
+# ========================================
+# Shopping cart data is stored in Redis for fast access
+# Redis is perfect for cart because:
+# 1. Very fast read/write
+# 2. Data is temporary (carts are short-lived)
+# 3. Easy to set expiration time
+Redis:
+  Host: 127.0.0.1:6379
+  Type: node
+  Pass: ""
+  DB: 3                  # Use database 3 for cart service
+
+# Cart settings
+Cart:
+  Expire: 604800         # Cart expires after 7 days (in seconds)
+  MaxItems: 99           # Maximum items per cart
+
+# ========================================
+# Product Service RPC (to check stock)
+# ========================================
+ProductRpc:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: product.rpc
+
+# ========================================
+# Logging
+# ========================================
+Log:
+  ServiceName: cart.rpc
+  Mode: file
+  Path: logs
+  Level: info
+  KeepDays: 7
+
+# ========================================
+# Timeout
+# ========================================
+Timeout: 5000

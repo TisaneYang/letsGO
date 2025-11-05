@@ -1,0 +1,89 @@
+# ========================================
+# Order RPC Service Configuration
+# ========================================
+
+Name: order.rpc
+ListenOn: 0.0.0.0:9004
+
+# ========================================
+# Service Registration
+# ========================================
+Etcd:
+  Hosts:
+    - 127.0.0.1:2379
+  Key: order.rpc
+
+# ========================================
+# PostgreSQL - Order Data
+# ========================================
+DB:
+  DataSource: postgres://postgres:postgres@127.0.0.1:5432/letsgo_order?sslmode=disable
+
+DBPool:
+  MaxOpenConns: 30
+  MaxIdleConns: 10
+  ConnMaxLifetime: 3600
+
+# ========================================
+# Redis Cache
+# ========================================
+Redis:
+  Host: 127.0.0.1:6379
+  Type: node
+  Pass: ""
+  DB: 4                  # Use database 4 for order service
+
+# ========================================
+# Kafka - Message Queue
+# ========================================
+# Send order events to Kafka for async processing
+# Examples: order confirmation email, inventory update, analytics
+Kafka:
+  Brokers:
+    - 127.0.0.1:9092
+  Topics:
+    OrderCreated: order.created        # Published when order is created
+    OrderPaid: order.paid              # Published when order is paid
+    OrderShipped: order.shipped        # Published when order is shipped
+    OrderCompleted: order.completed    # Published when order is completed
+    OrderCancelled: order.cancelled    # Published when order is cancelled
+
+# ========================================
+# Related Services RPC
+# ========================================
+
+# Product service - to check stock and update inventory
+ProductRpc:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: product.rpc
+
+# Cart service - to clear cart after order creation
+CartRpc:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: cart.rpc
+
+# ========================================
+# Business Rules
+# ========================================
+Order:
+  CancelTimeout: 1800    # Auto-cancel unpaid orders after 30 minutes (seconds)
+  CompleteTimeout: 604800 # Auto-complete orders after 7 days of shipping (seconds)
+
+# ========================================
+# Logging
+# ========================================
+Log:
+  ServiceName: order.rpc
+  Mode: file
+  Path: logs
+  Level: info
+  KeepDays: 7
+
+# ========================================
+# Timeout
+# ========================================
+Timeout: 10000           # Order operations may take longer (10 seconds)

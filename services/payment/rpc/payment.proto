@@ -1,0 +1,98 @@
+syntax = "proto3";
+
+package payment;
+
+option go_package = "./payment";
+
+// ========================================
+// Payment Service Definition
+// ========================================
+// Handles payment creation, status query, and callbacks
+
+service Payment {
+  // Create payment for order
+  rpc CreatePayment(CreatePaymentRequest) returns (CreatePaymentResponse);
+
+  // Query payment status
+  rpc QueryPayment(QueryPaymentRequest) returns (QueryPaymentResponse);
+
+  // Process payment callback from payment gateway
+  rpc PaymentCallback(PaymentCallbackRequest) returns (PaymentCallbackResponse);
+
+  // Cancel payment (timeout or user cancellation)
+  rpc CancelPayment(CancelPaymentRequest) returns (CancelPaymentResponse);
+
+  // Get payment by order ID
+  rpc GetPaymentByOrderId(GetPaymentByOrderIdRequest) returns (GetPaymentByOrderIdResponse);
+}
+
+// ========================================
+// Messages
+// ========================================
+
+message CreatePaymentRequest {
+  int64 order_id = 1;
+  int64 user_id = 2;
+  double amount = 3;
+  int32 payment_type = 4;      // 1:Alipay, 2:WeChat, 3:Credit Card
+}
+
+message CreatePaymentResponse {
+  int64 payment_id = 1;
+  string payment_no = 2;       // Payment transaction number
+  string pay_url = 3;          // Payment page URL (redirect)
+  string qr_code = 4;          // QR code data for scan payment
+}
+
+message QueryPaymentRequest {
+  int64 payment_id = 1;
+}
+
+message QueryPaymentResponse {
+  PaymentInfo payment = 1;
+}
+
+// Payment callback from third-party payment gateway
+message PaymentCallbackRequest {
+  string payment_no = 1;
+  int64 order_id = 2;
+  int32 status = 3;            // 2:success, 3:failed
+  double amount = 4;
+  string trade_no = 5;         // Third-party transaction number
+  string sign = 6;             // Signature for verification
+}
+
+message PaymentCallbackResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message CancelPaymentRequest {
+  int64 payment_id = 1;
+}
+
+message CancelPaymentResponse {
+  bool success = 1;
+}
+
+message GetPaymentByOrderIdRequest {
+  int64 order_id = 1;
+}
+
+message GetPaymentByOrderIdResponse {
+  PaymentInfo payment = 1;
+}
+
+// Payment information
+message PaymentInfo {
+  int64 id = 1;
+  int64 order_id = 2;
+  int64 user_id = 3;
+  string payment_no = 4;
+  double amount = 5;
+  int32 payment_type = 6;      // 1:Alipay, 2:WeChat, 3:Credit Card
+  int32 status = 7;            // 1:pending, 2:success, 3:failed, 4:cancelled
+  string trade_no = 8;         // Third-party transaction number
+  int64 created_at = 9;
+  int64 paid_at = 10;
+}

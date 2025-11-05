@@ -1,0 +1,104 @@
+# ========================================
+# Payment RPC Service Configuration
+# ========================================
+
+Name: payment.rpc
+ListenOn: 0.0.0.0:9005
+
+# ========================================
+# Service Registration
+# ========================================
+Etcd:
+  Hosts:
+    - 127.0.0.1:2379
+  Key: payment.rpc
+
+# ========================================
+# PostgreSQL - Payment Records
+# ========================================
+DB:
+  DataSource: postgres://postgres:postgres@127.0.0.1:5432/letsgo_payment?sslmode=disable
+
+DBPool:
+  MaxOpenConns: 25
+  MaxIdleConns: 10
+  ConnMaxLifetime: 3600
+
+# ========================================
+# Redis Cache
+# ========================================
+Redis:
+  Host: 127.0.0.1:6379
+  Type: node
+  Pass: ""
+  DB: 5                  # Use database 5 for payment service
+
+# ========================================
+# Kafka - Payment Events
+# ========================================
+Kafka:
+  Brokers:
+    - 127.0.0.1:9092
+  Topics:
+    PaymentSuccess: payment.success    # Published when payment succeeds
+    PaymentFailed: payment.failed      # Published when payment fails
+
+# ========================================
+# Third-Party Payment Gateway Configuration
+# ========================================
+# These are mock configurations for development
+# In production, replace with real payment gateway credentials
+
+# Alipay Configuration
+Alipay:
+  AppId: "2021000000000000"             # Your Alipay App ID
+  PrivateKey: "your-private-key"        # Your RSA private key
+  PublicKey: "alipay-public-key"        # Alipay public key
+  NotifyUrl: "http://your-domain/api/v1/payment/callback"  # Callback URL
+  ReturnUrl: "http://your-domain/payment/result"           # Return URL
+  SignType: "RSA2"
+
+# WeChat Pay Configuration
+WechatPay:
+  AppId: "wx1234567890abcdef"           # Your WeChat App ID
+  MchId: "1234567890"                   # Merchant ID
+  ApiKey: "your-api-key"                # API key
+  NotifyUrl: "http://your-domain/api/v1/payment/callback"
+
+# Mock Payment (for development/testing)
+MockPayment:
+  Enabled: true          # Enable mock payment for testing
+  AutoSuccess: true      # Auto succeed after delay
+  DelaySeconds: 3        # Simulate payment processing delay
+
+# ========================================
+# Order Service RPC
+# ========================================
+# Call order service to update order status after payment
+OrderRpc:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: order.rpc
+
+# ========================================
+# Payment Settings
+# ========================================
+Payment:
+  Timeout: 900           # Payment timeout: 15 minutes (seconds)
+  MaxRetry: 3            # Max retry times for payment query
+
+# ========================================
+# Logging
+# ========================================
+Log:
+  ServiceName: payment.rpc
+  Mode: file
+  Path: logs
+  Level: info
+  KeepDays: 7
+
+# ========================================
+# Timeout
+# ========================================
+Timeout: 5000

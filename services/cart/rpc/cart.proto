@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+package cart;
+
+option go_package = "./cart";
+
+// ========================================
+// Cart Service Definition
+// ========================================
+// Manages shopping cart operations
+// Uses Redis for fast read/write performance
+
+service Cart {
+  // Add product to cart
+  rpc AddToCart(AddToCartRequest) returns (AddToCartResponse);
+
+  // Get user's cart
+  rpc GetCart(GetCartRequest) returns (GetCartResponse);
+
+  // Update cart item quantity
+  rpc UpdateCartItem(UpdateCartItemRequest) returns (UpdateCartItemResponse);
+
+  // Remove item from cart
+  rpc RemoveCartItem(RemoveCartItemRequest) returns (RemoveCartItemResponse);
+
+  // Clear entire cart
+  rpc ClearCart(ClearCartRequest) returns (ClearCartResponse);
+
+  // Merge guest cart with user cart (after login)
+  rpc MergeCart(MergeCartRequest) returns (MergeCartResponse);
+}
+
+// ========================================
+// Messages
+// ========================================
+
+message AddToCartRequest {
+  int64 user_id = 1;
+  int64 product_id = 2;
+  int64 quantity = 3;
+  string product_name = 4;    // Product info for quick display
+  double price = 5;
+  string image = 6;
+}
+
+message AddToCartResponse {
+  bool success = 1;
+}
+
+message GetCartRequest {
+  int64 user_id = 1;
+}
+
+message GetCartResponse {
+  repeated CartItem items = 1;
+  double total_price = 2;
+  int64 total_count = 3;
+}
+
+message UpdateCartItemRequest {
+  int64 user_id = 1;
+  int64 product_id = 2;
+  int64 quantity = 3;          // New quantity
+}
+
+message UpdateCartItemResponse {
+  bool success = 1;
+}
+
+message RemoveCartItemRequest {
+  int64 user_id = 1;
+  int64 product_id = 2;
+}
+
+message RemoveCartItemResponse {
+  bool success = 1;
+}
+
+message ClearCartRequest {
+  int64 user_id = 1;
+}
+
+message ClearCartResponse {
+  bool success = 1;
+}
+
+// Merge temporary cart (before login) with user cart (after login)
+message MergeCartRequest {
+  int64 user_id = 1;
+  string temp_cart_id = 2;     // Temporary cart identifier
+}
+
+message MergeCartResponse {
+  bool success = 1;
+}
+
+// Cart item model
+message CartItem {
+  int64 product_id = 1;
+  string name = 2;
+  double price = 3;
+  int64 quantity = 4;
+  string image = 5;
+  int64 stock = 6;             // Current available stock
+  bool available = 7;          // Is product still available?
+}
