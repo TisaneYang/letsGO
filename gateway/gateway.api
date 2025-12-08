@@ -11,11 +11,10 @@ info (
 // ========================================
 // User Service APIs
 // ========================================
-
 // Public user endpoints (no authentication required)
 @server (
-	prefix: /api/v1/user  // All endpoints will start with /api/v1/user
-	group:  user           // Groups handlers into user package
+	prefix: /api/v1/user // All endpoints will start with /api/v1/user
+	group:  user // Groups handlers into user package
 )
 service gateway {
 	@doc "User registration - Creates a new user account"
@@ -31,7 +30,7 @@ service gateway {
 @server (
 	prefix:     /api/v1/user
 	group:      user
-	middleware: Auth  // This middleware checks JWT token validity
+	middleware: Auth // This middleware checks JWT token validity
 )
 service gateway {
 	@doc "Get user profile - Returns current user information"
@@ -46,7 +45,6 @@ service gateway {
 // ========================================
 // Product Service APIs
 // ========================================
-
 // Public product endpoints (anyone can view products)
 @server (
 	prefix: /api/v1/product
@@ -85,7 +83,6 @@ service gateway {
 // ========================================
 // Cart Service APIs (all require authentication)
 // ========================================
-
 @server (
 	prefix:     /api/v1/cart
 	group:      cart
@@ -116,7 +113,6 @@ service gateway {
 // ========================================
 // Order Service APIs (all require authentication)
 // ========================================
-
 @server (
 	prefix:     /api/v1/order
 	group:      order
@@ -143,7 +139,6 @@ service gateway {
 // ========================================
 // Payment Service APIs (all require authentication)
 // ========================================
-
 @server (
 	prefix:     /api/v1/payment
 	group:      payment
@@ -166,53 +161,45 @@ service gateway {
 // ============================================
 // TYPE DEFINITIONS - Request/Response Models
 // ============================================
-
 // ========================================
 // User Types
 // ========================================
-
 type (
 	// User registration request
 	RegisterReq {
-		Username string `json:"username" validate:"required,min=3,max=20"`  // Username 3-20 chars
-		Password string `json:"password" validate:"required,min=6"`         // Password min 6 chars
-		Email    string `json:"email" validate:"required,email"`            // Valid email format
+		Username string `json:"username" validate:"required,min=3,max=20"` // Username 3-20 chars
+		Password string `json:"password" validate:"required,min=6"` // Password min 6 chars
+		Email    string `json:"email" validate:"required,email"` // Valid email format
 		Phone    string `json:"phone,optional" validate:"omitempty,len=11"` // Optional 11-digit phone
 	}
-
 	RegisterResp {
 		UserId int64  `json:"userId"` // Unique user identifier
-		Token  string `json:"token"`  // JWT authentication token
+		Token  string `json:"token"` // JWT authentication token
 	}
-
 	// User login request
 	LoginReq {
 		Username string `json:"username" validate:"required"`
 		Password string `json:"password" validate:"required"`
 	}
-
 	LoginResp {
 		UserId int64  `json:"userId"`
 		Token  string `json:"token"`
 	}
-
 	// User profile response (no password!)
 	UserProfileResp {
-		UserId   int64  `json:"userId"`
-		Username string `json:"username"`
-		Email    string `json:"email"`
-		Phone    string `json:"phone"`
-		Avatar   string `json:"avatar"`
-		CreatedAt int64 `json:"createdAt"` // Unix timestamp
+		UserId    int64  `json:"userId"`
+		Username  string `json:"username"`
+		Email     string `json:"email"`
+		Phone     string `json:"phone"`
+		Avatar    string `json:"avatar"`
+		CreatedAt int64  `json:"createdAt"` // Unix timestamp
 	}
-
 	// Update profile request (all fields optional)
 	UpdateProfileReq {
 		Email  string `json:"email,optional" validate:"omitempty,email"`
 		Phone  string `json:"phone,optional" validate:"omitempty,len=11"`
 		Avatar string `json:"avatar,optional"`
 	}
-
 	UpdateProfileResp {
 		Success bool `json:"success"`
 	}
@@ -221,58 +208,49 @@ type (
 // ========================================
 // Product Types
 // ========================================
-
 type (
 	// Product list request with pagination
 	ProductListReq {
-		Page     int    `form:"page,default=1"`        // Current page number
-		PageSize int    `form:"pageSize,default=20"`   // Items per page
-		Category string `form:"category,optional"`      // Filter by category
+		Page     int    `form:"page,default=1"` // Current page number
+		PageSize int    `form:"pageSize,default=20"` // Items per page
+		Category string `form:"category,optional"` // Filter by category
 		SortBy   string `form:"sortBy,optional,options=price|created|sales"` // Sort field
-		Order    string `form:"order,optional,options=asc|desc"`            // Sort order
+		Order    string `form:"order,optional,options=asc|desc"` // Sort order
 	}
-
 	ProductListResp {
-		Total    int64     `json:"total"`    // Total number of products
+		Total    int64     `json:"total"` // Total number of products
 		Products []Product `json:"products"` // Product list
 	}
-
 	// Get single product by ID
 	ProductDetailReq {
 		Id int64 `path:"id" validate:"required,min=1"` // Product ID from URL path
 	}
-
 	ProductDetailResp {
 		Product Product `json:"product"`
 	}
-
 	// Search products by keyword
 	ProductSearchReq {
 		Keyword  string `form:"keyword" validate:"required,min=1"`
 		Page     int    `form:"page,default=1"`
 		PageSize int    `form:"pageSize,default=20"`
 	}
-
 	ProductSearchResp {
 		Total    int64     `json:"total"`
 		Products []Product `json:"products"`
 	}
-
 	// Admin: Add new product
 	AddProductReq {
 		Name        string   `json:"name" validate:"required,min=1,max=200"`
 		Description string   `json:"description" validate:"required"`
-		Price       float64  `json:"price" validate:"required,gt=0"`        // Must be > 0
-		Stock       int64    `json:"stock" validate:"required,gte=0"`       // Must be >= 0
+		Price       float64  `json:"price" validate:"required,gt=0"` // Must be > 0
+		Stock       int64    `json:"stock" validate:"required,gte=0"` // Must be >= 0
 		Category    string   `json:"category" validate:"required"`
-		Images      []string `json:"images" validate:"required,min=1"`      // At least 1 image
-		Attributes  string   `json:"attributes,optional"`                   // JSON string of attributes
+		Images      []string `json:"images" validate:"required,min=1"` // At least 1 image
+		Attributes  string   `json:"attributes,optional"` // JSON string of attributes
 	}
-
 	AddProductResp {
 		ProductId int64 `json:"productId"`
 	}
-
 	// Admin: Update existing product
 	UpdateProductReq {
 		Id          int64    `json:"id" validate:"required"`
@@ -284,11 +262,9 @@ type (
 		Images      []string `json:"images,optional"`
 		Attributes  string   `json:"attributes,optional"`
 	}
-
 	UpdateProductResp {
 		Success bool `json:"success"`
 	}
-
 	// Product model - core product information
 	Product {
 		Id          int64    `json:"id"`
@@ -297,9 +273,9 @@ type (
 		Price       float64  `json:"price"`
 		Stock       int64    `json:"stock"`
 		Category    string   `json:"category"`
-		Images      []string `json:"images"`       // Array of image URLs
-		Attributes  string   `json:"attributes"`   // JSON string: {"color": "red", "size": "L"}
-		Sales       int64    `json:"sales"`        // Total sales count
+		Images      []string `json:"images"` // Array of image URLs
+		Attributes  string   `json:"attributes"` // JSON string: {"color": "red", "size": "L"}
+		Sales       int64    `json:"sales"` // Total sales count
 		CreatedAt   int64    `json:"createdAt"`
 		UpdatedAt   int64    `json:"updatedAt"`
 	}
@@ -308,7 +284,6 @@ type (
 // ========================================
 // Cart Types
 // ========================================
-
 type (
 	// Get current user's cart
 	CartResp {
@@ -316,139 +291,119 @@ type (
 		TotalPrice float64    `json:"totalPrice"` // Sum of all items
 		TotalCount int64      `json:"totalCount"` // Total number of items
 	}
-
 	// Add product to cart
 	AddToCartReq {
 		ProductId int64 `json:"productId" validate:"required,min=1"`
 		Quantity  int64 `json:"quantity" validate:"required,min=1,max=999"` // 1-999 items
 	}
-
 	AddToCartResp {
 		Success bool `json:"success"`
 	}
-
 	// Update cart item quantity
 	UpdateCartReq {
 		ProductId int64 `json:"productId" validate:"required,min=1"`
 		Quantity  int64 `json:"quantity" validate:"required,min=1,max=999"`
 	}
-
 	UpdateCartResp {
 		Success bool `json:"success"`
 	}
-
 	// Remove item from cart
 	RemoveCartReq {
 		ItemId int64 `path:"itemId" validate:"required,min=1"`
 	}
-
 	RemoveCartResp {
 		Success bool `json:"success"`
 	}
-
 	// Clear entire cart
 	ClearCartResp {
 		Success bool `json:"success"`
 	}
-
 	// Cart item model
 	CartItem {
-		Id        int64   `json:"id"`        // Cart item ID
+		Id        int64   `json:"id"` // Cart item ID
 		ProductId int64   `json:"productId"` // Product reference
 		Name      string  `json:"name"`
-		Price     float64 `json:"price"`     // Price at time of adding
+		Price     float64 `json:"price"` // Price at time of adding
 		Quantity  int64   `json:"quantity"`
-		Image     string  `json:"image"`     // First product image
-		Stock     int64   `json:"stock"`     // Current available stock
+		Image     string  `json:"image"` // First product image
+		Stock     int64   `json:"stock"` // Current available stock
 	}
 )
 
 // ========================================
 // Order Types
 // ========================================
-
 type (
 	// Create new order from cart
 	CreateOrderReq {
 		Items   []OrderItemReq `json:"items" validate:"required,min=1,dive"` // At least 1 item
-		Address string         `json:"address" validate:"required,min=10"`   // Delivery address
-		Phone   string         `json:"phone" validate:"required,len=11"`     // Contact phone
-		Remark  string         `json:"remark,optional"`                      // Order notes
+		Address string         `json:"address" validate:"required,min=10"` // Delivery address
+		Phone   string         `json:"phone" validate:"required,len=11"` // Contact phone
+		Remark  string         `json:"remark,optional"` // Order notes
 	}
-
 	CreateOrderResp {
 		OrderId     int64   `json:"orderId"`
-		OrderNo     string  `json:"orderNo"`     // Human-readable order number
+		OrderNo     string  `json:"orderNo"` // Human-readable order number
 		TotalAmount float64 `json:"totalAmount"` // Total order price
 	}
-
 	// List user's orders with pagination
 	OrderListReq {
 		Page     int `form:"page,default=1"`
 		PageSize int `form:"pageSize,default=10"`
 		Status   int `form:"status,optional"` // Filter by status (0=all)
 	}
-
 	OrderListResp {
 		Total  int64   `json:"total"`
 		Orders []Order `json:"orders"`
 	}
-
 	// Get single order detail
 	OrderDetailReq {
 		Id int64 `path:"id" validate:"required,min=1"`
 	}
-
 	OrderDetailResp {
 		Order Order `json:"order"`
 	}
-
 	// Cancel order (only if not paid)
 	CancelOrderReq {
 		Id int64 `path:"id" validate:"required,min=1"`
 	}
-
 	CancelOrderResp {
 		Success bool `json:"success"`
 	}
-
 	// Order item in create request
 	OrderItemReq {
 		ProductId int64 `json:"productId" validate:"required,min=1"`
 		Quantity  int64 `json:"quantity" validate:"required,min=1"`
 	}
-
 	// Order model - represents a complete order
 	Order {
 		Id          int64       `json:"id"`
 		UserId      int64       `json:"userId"`
-		OrderNo     string      `json:"orderNo"`     // e.g., "LG20250104123456"
+		OrderNo     string      `json:"orderNo"` // e.g., "LG20250104123456"
 		TotalAmount float64     `json:"totalAmount"`
-		Status      int         `json:"status"`      // Order status (see below)
+		Status      int         `json:"status"` // Order status (see below)
 		Address     string      `json:"address"`
 		Phone       string      `json:"phone"`
 		Remark      string      `json:"remark"`
-		Items       []OrderItem `json:"items"`       // Order items list
+		Items       []OrderItem `json:"items"` // Order items list
 		CreatedAt   int64       `json:"createdAt"`
 		UpdatedAt   int64       `json:"updatedAt"`
-		PaidAt      int64       `json:"paidAt,optional"`      // Payment time
-		ShippedAt   int64       `json:"shippedAt,optional"`   // Shipping time
+		PaidAt      int64       `json:"paidAt,optional"` // Payment time
+		ShippedAt   int64       `json:"shippedAt,optional"` // Shipping time
 		CompletedAt int64       `json:"completedAt,optional"` // Completion time
 	}
-
 	// Order status enum:
 	// 1: Pending (waiting for payment)
 	// 2: Paid (payment successful, preparing shipment)
 	// 3: Shipped (on delivery)
 	// 4: Completed (order finished)
 	// 5: Cancelled (order cancelled)
-
 	// Order item model
 	OrderItem {
 		Id        int64   `json:"id"`
 		ProductId int64   `json:"productId"`
 		Name      string  `json:"name"`
-		Price     float64 `json:"price"`     // Price at time of purchase (snapshot)
+		Price     float64 `json:"price"` // Price at time of purchase (snapshot)
 		Quantity  int64   `json:"quantity"`
 		Image     string  `json:"image"`
 	}
@@ -457,7 +412,6 @@ type (
 // ========================================
 // Payment Types
 // ========================================
-
 type (
 	// Create payment for order
 	CreatePaymentReq {
@@ -465,40 +419,34 @@ type (
 		PaymentType int     `json:"paymentType" validate:"required,oneof=1 2 3"` // Payment method
 		Amount      float64 `json:"amount" validate:"required,gt=0"`
 	}
-
 	// Payment type enum:
 	// 1: Alipay
 	// 2: WeChat Pay
 	// 3: Credit Card
-
 	CreatePaymentResp {
 		PaymentId int64  `json:"paymentId"`
-		PaymentNo string `json:"paymentNo"`   // Payment transaction number
+		PaymentNo string `json:"paymentNo"` // Payment transaction number
 		PayUrl    string `json:"payUrl,optional"` // Payment page URL (for redirect)
 		QrCode    string `json:"qrCode,optional"` // QR code for scan payment
 	}
-
 	// Query payment status
 	QueryPaymentReq {
 		OrderId int64 `path:"orderId" validate:"required,min=1"`
 	}
-
 	QueryPaymentResp {
 		PaymentId   int64   `json:"paymentId"`
 		PaymentNo   string  `json:"paymentNo"`
 		OrderId     int64   `json:"orderId"`
-		Status      int     `json:"status"`      // Payment status (see below)
+		Status      int     `json:"status"` // Payment status (see below)
 		Amount      float64 `json:"amount"`
 		PaymentType int     `json:"paymentType"`
 		PaidAt      int64   `json:"paidAt,optional"`
 	}
-
 	// Payment status enum:
 	// 1: Pending (waiting for payment)
 	// 2: Success (payment successful)
 	// 3: Failed (payment failed)
 	// 4: Cancelled (payment cancelled)
-
 	// Payment callback from payment gateway
 	PaymentCallbackReq {
 		PaymentNo string  `json:"paymentNo" validate:"required"`
@@ -507,9 +455,9 @@ type (
 		Amount    float64 `json:"amount" validate:"required"`
 		TradeNo   string  `json:"tradeNo"` // Third-party transaction number
 	}
-
 	PaymentCallbackResp {
 		Success bool   `json:"success"`
 		Message string `json:"message"`
 	}
 )
+
