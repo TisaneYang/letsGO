@@ -4,19 +4,24 @@
 package svc
 
 import (
-	"github.com/zeromicro/go-zero/rest"
 	"letsgo/gateway/internal/config"
 	"letsgo/gateway/internal/middleware"
+	"letsgo/services/user/rpc/user_client"
+
+	"github.com/zeromicro/go-zero/rest"
+	"github.com/zeromicro/go-zero/zrpc"
 )
 
 type ServiceContext struct {
-	Config config.Config
-	Auth   rest.Middleware
+	Config  config.Config
+	Auth    rest.Middleware
+	UserRpc user_client.User
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
 	return &ServiceContext{
-		Config: c,
-		Auth:   middleware.NewAuthMiddleware().Handle,
+		Config:  c,
+		Auth:    middleware.NewAuthMiddleware(c.Auth.AccessSecret).Handle,
+		UserRpc: user_client.NewUser(zrpc.MustNewClient(c.UserRpc)),
 	}
 }

@@ -8,6 +8,7 @@ import (
 
 	"letsgo/gateway/internal/svc"
 	"letsgo/gateway/internal/types"
+	"letsgo/services/user/rpc/user"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -28,7 +29,16 @@ func NewLoginLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LoginLogic 
 }
 
 func (l *LoginLogic) Login(req *types.LoginReq) (resp *types.LoginResp, err error) {
-	// todo: add your logic here and delete this line
+	userResp, err := l.svcCtx.UserRpc.Login(l.ctx, &user.LoginRequest{
+		Username: req.Username,
+		Password: req.Password,
+	})
+	if err != nil {
+		return nil, err
+	}
 
-	return
+	return &types.LoginResp{
+		UserId: userResp.UserId,
+		Token:  userResp.Token,
+	}, nil
 }
