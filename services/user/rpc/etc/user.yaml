@@ -32,16 +32,15 @@ DBPool:
 # Cache Configuration - Redis
 # ========================================
 # User info is cached in Redis for faster access
-Redis:
-  Host: 127.0.0.1:6379
-  Type: node
-  Pass: ""
-  DB: 1                  # Use database 1 for user service
+RedisConf:
+  - Host: 127.0.0.1:6379
+    Type: node
+    Pass: ""
 
 # ========================================
 # JWT Configuration
 # ========================================
-Auth:
+AuthConf:
   AccessSecret: letsgo-jwt-secret-key-change-in-production-2025
   AccessExpire: 86400    # 24 hours
 

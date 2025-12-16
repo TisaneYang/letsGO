@@ -29,10 +29,16 @@ Log:
 
 # User Service RPC Configuration
 UserRpc:
+  # Service discovery via etcd
   Etcd:
     Hosts:
       - 127.0.0.1:2379    # etcd server address
     Key: user.rpc         # Service key in etcd
+  Timeout: 10000          # RPC timeout in milliseconds
+  # NonBlock: true          # Don't block on startup if service not available
+  # Direct connection mode (for testing)
+  # Endpoints:
+  #   - 127.0.0.1:9001
 
 # Product Service RPC Configuration
 ProductRpc:
