@@ -9,6 +9,7 @@ import (
 	"letsgo/services/user/rpc/internal/svc"
 	"letsgo/services/user/rpc/user"
 
+	_ "github.com/lib/pq" // PostgreSQL driver
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/service"
 	"github.com/zeromicro/go-zero/zrpc"

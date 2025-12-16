@@ -30,7 +30,7 @@ func NewGetUserProfileLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Ge
 
 func (l *GetUserProfileLogic) GetUserProfile() (resp *types.UserProfileResp, err error) {
 	userResp, err := l.svcCtx.UserRpc.GetUserInfo(l.ctx, &user_client.GetUserInfoRequest{
-		UserId: l.ctx.Value("user_id").(int64),
+		UserId: l.ctx.Value("userId").(int64),
 	})
 	if err != nil {
 		return nil, err

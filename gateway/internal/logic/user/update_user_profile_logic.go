@@ -8,7 +8,7 @@ import (
 
 	"letsgo/gateway/internal/svc"
 	"letsgo/gateway/internal/types"
-	"letsgo/services/user/rpc/user"
+	"letsgo/services/user/rpc/user_client"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -29,8 +29,7 @@ func NewUpdateUserProfileLogic(ctx context.Context, svcCtx *svc.ServiceContext) 
 }
 
 func (l *UpdateUserProfileLogic) UpdateUserProfile(req *types.UpdateProfileReq) (resp *types.UpdateProfileResp, err error) {
-	// todo: add your logic here and delete this line
-	userResp, err := l.svcCtx.UserRpc.UpdateProfile(l.ctx, &user.UpdateProfileRequest{
+	userResp, err := l.svcCtx.UserRpc.UpdateProfile(l.ctx, &user_client.UpdateProfileRequest{
 		UserId: l.ctx.Value("user_id").(int64),
 		Email:  req.Email,
 		Phone:  req.Phone,

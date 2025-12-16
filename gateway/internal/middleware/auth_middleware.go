@@ -11,7 +11,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-var userIdKey string = "user_id"
+var userIdKey string = "userId"
 
 type AuthMiddleware struct {
 	jwtSecret string
