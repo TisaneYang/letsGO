@@ -37,7 +37,7 @@ func (l *RegisterLogic) Register(in *user.RegisterRequest) (*user.RegisterRespon
 	}
 
 	// 2. Check if username already exists
-	existingUser, err := l.svcCtx.UserModel.FindOneByUsername(in.Username)
+	existingUser, err := l.svcCtx.UserModel.FindOneByUsername(l.ctx, in.Username)
 	if err != nil && err != model.ErrNotFound {
 		l.Logger.Errorf("Failed to check username existence: %v", err)
 		return nil, errorx.ErrDatabase
@@ -47,7 +47,7 @@ func (l *RegisterLogic) Register(in *user.RegisterRequest) (*user.RegisterRespon
 	}
 
 	// 3. Check if email already exists
-	existingEmail, err := l.svcCtx.UserModel.FindOneByEmail(in.Email)
+	existingEmail, err := l.svcCtx.UserModel.FindOneByEmail(l.ctx, in.Email)
 	if err != nil && err != model.ErrNotFound {
 		l.Logger.Errorf("Failed to check email existence: %v", err)
 		return nil, errorx.ErrDatabase
@@ -75,7 +75,7 @@ func (l *RegisterLogic) Register(in *user.RegisterRequest) (*user.RegisterRespon
 	}
 
 	// 6. Insert user into database
-	_, err = l.svcCtx.UserModel.Insert(newUser)
+	_, err = l.svcCtx.UserModel.Insert(l.ctx, newUser)
 	if err != nil {
 		l.Logger.Errorf("Failed to insert user: %v", err)
 		return nil, errorx.ErrDatabase

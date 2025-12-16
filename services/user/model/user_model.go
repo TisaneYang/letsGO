@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"strings"
@@ -14,22 +15,22 @@ type (
 	// UserModel is an interface to be customized
 	UserModel interface {
 		// Insert a new user
-		Insert(data *User) (sql.Result, error)
+		Insert(ctx context.Context, data *User) (sql.Result, error)
 
 		// FindOne by user ID
-		FindOne(id int64) (*User, error)
+		FindOne(ctx context.Context, id int64) (*User, error)
 
 		// FindOneByUsername finds user by username
-		FindOneByUsername(username string) (*User, error)
+		FindOneByUsername(ctx context.Context, username string) (*User, error)
 
 		// FindOneByEmail finds user by email
-		FindOneByEmail(email string) (*User, error)
+		FindOneByEmail(ctx context.Context, email string) (*User, error)
 
 		// Update user profile
-		Update(data *User) error
+		Update(ctx context.Context, data *User) error
 
 		// Delete user (soft delete by setting status)
-		Delete(id int64) error
+		Delete(ctx context.Context, id int64) error
 	}
 
 	customUserModel struct {
@@ -45,13 +46,13 @@ func NewUserModel(conn sqlx.SqlConn) UserModel {
 }
 
 // Insert inserts a new user into database
-func (m *customUserModel) Insert(data *User) (sql.Result, error) {
+func (m *customUserModel) Insert(ctx context.Context, data *User) (sql.Result, error) {
 	query := `INSERT INTO users (username, password, salt, email, phone, avatar, status, created_at, updated_at)
 			  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 			  RETURNING id`
 
 	var id int64
-	err := m.conn.QueryRow(&id, query,
+	err := m.conn.QueryRowCtx(ctx, &id, query,
 		data.Username,
 		data.Password,
 		data.Salt,
@@ -72,13 +73,13 @@ func (m *customUserModel) Insert(data *User) (sql.Result, error) {
 }
 
 // FindOne finds user by ID
-func (m *customUserModel) FindOne(id int64) (*User, error) {
+func (m *customUserModel) FindOne(ctx context.Context, id int64) (*User, error) {
 	query := `SELECT id, username, password, salt, email, phone, avatar, status, created_at, updated_at
 			  FROM users
 			  WHERE id = $1 AND status = 1`
 
 	var user User
-	err := m.conn.QueryRow(&user, query, id)
+	err := m.conn.QueryRowCtx(ctx, &user, query, id)
 
 	switch err {
 	case nil:
@@ -91,13 +92,13 @@ func (m *customUserModel) FindOne(id int64) (*User, error) {
 }
 
 // FindOneByUsername finds user by username
-func (m *customUserModel) FindOneByUsername(username string) (*User, error) {
+func (m *customUserModel) FindOneByUsername(ctx context.Context, username string) (*User, error) {
 	query := `SELECT id, username, password, salt, email, phone, avatar, status, created_at, updated_at
 			  FROM users
 			  WHERE username = $1`
 
 	var user User
-	err := m.conn.QueryRow(&user, query, username)
+	err := m.conn.QueryRowCtx(ctx, &user, query, username)
 
 	switch err {
 	case nil:
@@ -110,13 +111,13 @@ func (m *customUserModel) FindOneByUsername(username string) (*User, error) {
 }
 
 // FindOneByEmail finds user by email
-func (m *customUserModel) FindOneByEmail(email string) (*User, error) {
+func (m *customUserModel) FindOneByEmail(ctx context.Context, email string) (*User, error) {
 	query := `SELECT id, username, password, salt, email, phone, avatar, status, created_at, updated_at
 			  FROM users
 			  WHERE email = $1`
 
 	var user User
-	err := m.conn.QueryRow(&user, query, email)
+	err := m.conn.QueryRowCtx(ctx, &user, query, email)
 
 	switch err {
 	case nil:
@@ -129,19 +130,19 @@ func (m *customUserModel) FindOneByEmail(email string) (*User, error) {
 }
 
 // Update updates user profile
-func (m *customUserModel) Update(data *User) error {
+func (m *customUserModel) Update(ctx context.Context, data *User) error {
 	query := `UPDATE users
 			  SET email = $1, phone = $2, avatar = $3, updated_at = $4
 			  WHERE id = $5`
 
-	_, err := m.conn.Exec(query, data.Email, data.Phone, data.Avatar, data.UpdatedAt, data.Id)
+	_, err := m.conn.ExecCtx(ctx, query, data.Email, data.Phone, data.Avatar, data.UpdatedAt, data.Id)
 	return err
 }
 
 // Delete soft deletes user by setting status to 2
-func (m *customUserModel) Delete(id int64) error {
+func (m *customUserModel) Delete(ctx context.Context, id int64) error {
 	query := `UPDATE users SET status = 2 WHERE id = $1`
-	_, err := m.conn.Exec(query, id)
+	_, err := m.conn.ExecCtx(ctx, query, id)
 	return err
 }
 

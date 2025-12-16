@@ -47,7 +47,7 @@ func (l *GetUserInfoLogic) GetUserInfo(in *user.GetUserInfoRequest) (*user.GetUs
 	}
 
 	// 3. Cache miss - query from database
-	existingUser, err := l.svcCtx.UserModel.FindOne(in.UserId)
+	existingUser, err := l.svcCtx.UserModel.FindOne(l.ctx, in.UserId)
 	if err != nil {
 		if err == model.ErrNotFound {
 			return nil, errorx.ErrUserNotFound

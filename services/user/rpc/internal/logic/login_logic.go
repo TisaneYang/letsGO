@@ -40,7 +40,7 @@ func (l *LoginLogic) Login(in *user.LoginRequest) (*user.LoginResponse, error) {
 	}
 
 	// 2. Find user by username
-	existingUser, err := l.svcCtx.UserModel.FindOneByUsername(in.Username)
+	existingUser, err := l.svcCtx.UserModel.FindOneByUsername(l.ctx, in.Username)
 	if err != nil {
 		if err == model.ErrNotFound {
 			return nil, errorx.ErrUserNotFound

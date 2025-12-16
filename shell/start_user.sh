@@ -1,0 +1,1 @@
+env -i PATH="$PATH" HOME="$HOME" GOROOT="$GOROOT" GOPATH="$GOPATH" ./bin/user-rpc -f ./services/user/rpc/etc/user.yaml

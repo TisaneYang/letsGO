@@ -36,7 +36,7 @@ func (l *UpdateProfileLogic) UpdateProfile(in *user.UpdateProfileRequest) (*user
 	}
 
 	// 2. Check if user exists
-	existingUser, err := l.svcCtx.UserModel.FindOne(in.UserId)
+	existingUser, err := l.svcCtx.UserModel.FindOne(l.ctx, in.UserId)
 	if err != nil {
 		if err == model.ErrNotFound {
 			return nil, errorx.ErrUserNotFound
@@ -56,7 +56,7 @@ func (l *UpdateProfileLogic) UpdateProfile(in *user.UpdateProfileRequest) (*user
 		}
 
 		// Check if email already used by another user
-		existingEmail, err := l.svcCtx.UserModel.FindOneByEmail(in.Email)
+		existingEmail, err := l.svcCtx.UserModel.FindOneByEmail(l.ctx, in.Email)
 		if err != nil && err != model.ErrNotFound {
 			l.Logger.Errorf("Failed to check email: %v", err)
 			return nil, errorx.ErrDatabase
@@ -90,7 +90,7 @@ func (l *UpdateProfileLogic) UpdateProfile(in *user.UpdateProfileRequest) (*user
 	existingUser.UpdatedAt = time.Now().Unix()
 
 	// 6. Update database
-	err = l.svcCtx.UserModel.Update(existingUser)
+	err = l.svcCtx.UserModel.Update(l.ctx, existingUser)
 	if err != nil {
 		l.Logger.Errorf("Failed to update user profile: %v", err)
 		return nil, errorx.ErrDatabase
