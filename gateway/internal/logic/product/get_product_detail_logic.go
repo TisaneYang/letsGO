@@ -8,6 +8,7 @@ import (
 
 	"letsgo/gateway/internal/svc"
 	"letsgo/gateway/internal/types"
+	"letsgo/services/product/rpc/product_client"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -28,7 +29,27 @@ func NewGetProductDetailLogic(ctx context.Context, svcCtx *svc.ServiceContext) *
 }
 
 func (l *GetProductDetailLogic) GetProductDetail(req *types.ProductDetailReq) (resp *types.ProductDetailResp, err error) {
-	// todo: add your logic here and delete this line
+	ProductResp, err := l.svcCtx.ProductRpc.GetProduct(l.ctx, &product_client.GetProductRequest{
+		Id: req.Id,
+	})
+	if err != nil {
+		return nil, err
+	}
 
-	return
+	ProductInfo := ProductResp.Product
+	return &types.ProductDetailResp{
+		Product: types.Product{
+			Id:          ProductInfo.Id,
+			Name:        ProductInfo.Name,
+			Description: ProductInfo.Description,
+			Price:       ProductInfo.Price,
+			Stock:       ProductInfo.Stock,
+			Category:    ProductInfo.Category,
+			Images:      ProductInfo.Images,
+			Attributes:  ProductInfo.Attributes,
+			Sales:       ProductInfo.Sales,
+			CreatedAt:   ProductInfo.CreatedAt,
+			UpdatedAt:   ProductInfo.UpdatedAt,
+		},
+	}, nil
 }

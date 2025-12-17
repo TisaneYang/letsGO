@@ -8,6 +8,7 @@ import (
 
 	"letsgo/gateway/internal/svc"
 	"letsgo/gateway/internal/types"
+	"letsgo/services/product/rpc/product_client"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -28,7 +29,20 @@ func NewAddProductLogic(ctx context.Context, svcCtx *svc.ServiceContext) *AddPro
 }
 
 func (l *AddProductLogic) AddProduct(req *types.AddProductReq) (resp *types.AddProductResp, err error) {
-	// todo: add your logic here and delete this line
+	ProductResp, err := l.svcCtx.ProductRpc.AddProduct(l.ctx, &product_client.AddProductRequest{
+		Name:        req.Name,
+		Description: req.Description,
+		Price:       req.Price,
+		Stock:       req.Stock,
+		Category:    req.Category,
+		Images:      req.Images,
+		Attributes:  req.Attributes,
+	})
+	if err != nil {
+		return nil, err
+	}
 
-	return
+	return &types.AddProductResp{
+		ProductId: ProductResp.ProductId,
+	}, nil
 }
