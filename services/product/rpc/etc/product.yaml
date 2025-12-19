@@ -48,11 +48,11 @@ Mongo:
 # Redis Cache
 # ========================================
 # Cache hot products and search results
-Redis:
-  Host: 127.0.0.1:6379
-  Type: node
-  Pass: ""
-  DB: 2                  # Use database 2 for product service
+RedisConf:
+  - Host: 127.0.0.1:6379
+    Type: node
+    Pass: ""
+    DB: 2                  # Use database 2 for product service
 
 # Cache settings
 Cache:

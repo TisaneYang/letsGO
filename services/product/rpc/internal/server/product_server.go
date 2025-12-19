@@ -64,3 +64,9 @@ func (s *ProductServer) CheckStock(ctx context.Context, in *product.CheckStockRe
 	l := logic.NewCheckStockLogic(ctx, s.svcCtx)
 	return l.CheckStock(in)
 }
+
+// Increment product sales count (called by order service after order completion)
+func (s *ProductServer) IncrementSales(ctx context.Context, in *product.IncrementSalesRequest) (*product.IncrementSalesResponse, error) {
+	l := logic.NewIncrementSalesLogic(ctx, s.svcCtx)
+	return l.IncrementSales(in)
+}

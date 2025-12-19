@@ -30,6 +30,9 @@ service Product {
 
   // Check if products are in stock (batch check)
   rpc CheckStock(CheckStockRequest) returns (CheckStockResponse);
+
+  // Increment product sales count (called by order service after order completion)
+  rpc IncrementSales(IncrementSalesRequest) returns (IncrementSalesResponse);
 }
 
 // ========================================
@@ -55,10 +58,10 @@ message UpdateProductRequest {
   string name = 2;               // Empty = no change
   string description = 3;
   double price = 4;              // 0 = no change
-  int64 stock = 5;               // -1 = no change
-  string category = 6;
-  repeated string images = 7;
-  string attributes = 8;
+  // stock field removed - use UpdateStock RPC instead
+  string category = 5;
+  repeated string images = 6;
+  string attributes = 7;
 }
 
 message UpdateProductResponse {
@@ -122,6 +125,17 @@ message StockItem {
   int64 product_id = 1;
   int64 required_quantity = 2;   // How many needed
   int64 available_stock = 3;     // How many in stock
+}
+
+// Increment sales count (after order completion)
+message IncrementSalesRequest {
+  int64 product_id = 1;
+  int64 quantity = 2;            // Sales quantity to add
+}
+
+message IncrementSalesResponse {
+  bool success = 1;
+  int64 new_sales = 2;           // Sales count after update
 }
 
 // Product information model

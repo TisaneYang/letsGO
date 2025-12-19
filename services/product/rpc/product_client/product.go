@@ -20,6 +20,8 @@ type (
 	CheckStockResponse     = product.CheckStockResponse
 	GetProductRequest      = product.GetProductRequest
 	GetProductResponse     = product.GetProductResponse
+	IncrementSalesRequest  = product.IncrementSalesRequest
+	IncrementSalesResponse = product.IncrementSalesResponse
 	ListProductsRequest    = product.ListProductsRequest
 	ListProductsResponse   = product.ListProductsResponse
 	ProductInfo            = product.ProductInfo
@@ -46,6 +48,8 @@ type (
 		UpdateStock(ctx context.Context, in *UpdateStockRequest, opts ...grpc.CallOption) (*UpdateStockResponse, error)
 		// Check if products are in stock (batch check)
 		CheckStock(ctx context.Context, in *CheckStockRequest, opts ...grpc.CallOption) (*CheckStockResponse, error)
+		// Increment product sales count (called by order service after order completion)
+		IncrementSales(ctx context.Context, in *IncrementSalesRequest, opts ...grpc.CallOption) (*IncrementSalesResponse, error)
 	}
 
 	defaultProduct struct {
@@ -99,4 +103,10 @@ func (m *defaultProduct) UpdateStock(ctx context.Context, in *UpdateStockRequest
 func (m *defaultProduct) CheckStock(ctx context.Context, in *CheckStockRequest, opts ...grpc.CallOption) (*CheckStockResponse, error) {
 	client := product.NewProductClient(m.cli.Conn())
 	return client.CheckStock(ctx, in, opts...)
+}
+
+// Increment product sales count (called by order service after order completion)
+func (m *defaultProduct) IncrementSales(ctx context.Context, in *IncrementSalesRequest, opts ...grpc.CallOption) (*IncrementSalesResponse, error) {
+	client := product.NewProductClient(m.cli.Conn())
+	return client.IncrementSales(ctx, in, opts...)
 }

@@ -1,0 +1,1 @@
+env -i PATH="$PATH" HOME="$HOME" GOROOT="$GOROOT" GOPATH="$GOPATH" ./bin/product-rpc -f ./services/product/rpc/etc/product.yaml

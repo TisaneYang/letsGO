@@ -247,7 +247,6 @@ type UpdateProductReq struct {
 	Name        string   `json:"name,optional" validate:"omitempty,min=1,max=200"`
 	Description string   `json:"description,optional"`
 	Price       float64  `json:"price,optional" validate:"omitempty,gt=0"`
-	Stock       int64    `json:"stock,optional" validate:"omitempty,gte=0"`
 	Category    string   `json:"category,optional"`
 	Images      []string `json:"images,optional"`
 	Attributes  string   `json:"attributes,optional"`

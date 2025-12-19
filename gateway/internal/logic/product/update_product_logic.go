@@ -34,7 +34,6 @@ func (l *UpdateProductLogic) UpdateProduct(req *types.UpdateProductReq) (resp *t
 		Name:        req.Name,
 		Description: req.Description,
 		Price:       req.Price,
-		Stock:       req.Stock,
 		Category:    req.Category,
 		Images:      req.Images,
 		Attributes:  req.Attributes,
