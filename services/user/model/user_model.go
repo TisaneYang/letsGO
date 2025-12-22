@@ -47,8 +47,8 @@ func NewUserModel(conn sqlx.SqlConn) UserModel {
 
 // Insert inserts a new user into database
 func (m *customUserModel) Insert(ctx context.Context, data *User) (sql.Result, error) {
-	query := `INSERT INTO users (username, password, salt, email, phone, avatar, status, created_at, updated_at)
-			  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+	query := `INSERT INTO users (username, password, salt, email, phone, avatar, role, status, created_at, updated_at)
+			  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 			  RETURNING id`
 
 	var id int64
@@ -59,6 +59,7 @@ func (m *customUserModel) Insert(ctx context.Context, data *User) (sql.Result, e
 		data.Email,
 		data.Phone,
 		data.Avatar,
+		data.Role,
 		data.Status,
 		data.CreatedAt,
 		data.UpdatedAt,
@@ -74,7 +75,7 @@ func (m *customUserModel) Insert(ctx context.Context, data *User) (sql.Result, e
 
 // FindOne finds user by ID
 func (m *customUserModel) FindOne(ctx context.Context, id int64) (*User, error) {
-	query := `SELECT id, username, password, salt, email, phone, avatar, status, created_at, updated_at
+	query := `SELECT id, username, password, salt, email, phone, avatar, role, status, created_at, updated_at
 			  FROM users
 			  WHERE id = $1 AND status = 1`
 
@@ -93,7 +94,7 @@ func (m *customUserModel) FindOne(ctx context.Context, id int64) (*User, error) 
 
 // FindOneByUsername finds user by username
 func (m *customUserModel) FindOneByUsername(ctx context.Context, username string) (*User, error) {
-	query := `SELECT id, username, password, salt, email, phone, avatar, status, created_at, updated_at
+	query := `SELECT id, username, password, salt, email, phone, avatar, role, status, created_at, updated_at
 			  FROM users
 			  WHERE username = $1`
 
@@ -112,7 +113,7 @@ func (m *customUserModel) FindOneByUsername(ctx context.Context, username string
 
 // FindOneByEmail finds user by email
 func (m *customUserModel) FindOneByEmail(ctx context.Context, email string) (*User, error) {
-	query := `SELECT id, username, password, salt, email, phone, avatar, status, created_at, updated_at
+	query := `SELECT id, username, password, salt, email, phone, avatar, role, status, created_at, updated_at
 			  FROM users
 			  WHERE email = $1`
 

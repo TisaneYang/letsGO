@@ -142,7 +142,7 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 
 	server.AddRoutes(
 		rest.WithMiddlewares(
-			[]rest.Middleware{serverCtx.Auth},
+			[]rest.Middleware{serverCtx.AdminAuth},
 			[]rest.Route{
 				{
 					// Add product - Admin creates new product (admin only)

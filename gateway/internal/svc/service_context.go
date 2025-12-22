@@ -16,6 +16,7 @@ import (
 type ServiceContext struct {
 	Config     config.Config
 	Auth       rest.Middleware
+	AdminAuth  rest.Middleware
 	UserRpc    user_client.User
 	ProductRpc product_client.Product
 }
@@ -24,6 +25,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	return &ServiceContext{
 		Config:     c,
 		Auth:       middleware.NewAuthMiddleware(c.Auth.AccessSecret).Handle,
+		AdminAuth:  middleware.NewAdminAuthMiddleware(c.Auth.AccessSecret).Handle,
 		UserRpc:    user_client.NewUser(zrpc.MustNewClient(c.UserRpc)),
 		ProductRpc: product_client.NewProduct(zrpc.MustNewClient(c.ProductRpc)),
 	}

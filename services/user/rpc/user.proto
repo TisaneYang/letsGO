@@ -39,6 +39,9 @@ message RegisterRequest {
   string password = 2;  // Plain password (will be hashed in service)
   string email = 3;     // Email address
   string phone = 4;     // Phone number (optional)
+  // Note: role is not exposed in public registration for security reasons
+  // All new users are registered as 'user' by default
+  // Admin users must be created through database or admin panel
 }
 
 message RegisterResponse {
@@ -55,6 +58,7 @@ message LoginRequest {
 message LoginResponse {
   int64 user_id = 1;
   string token = 2;
+  string role = 3;      // User role
 }
 
 // Get User Info Request
@@ -68,8 +72,9 @@ message GetUserInfoResponse {
   string email = 3;
   string phone = 4;
   string avatar = 5;
-  int64 created_at = 6;  // Unix timestamp
-  int64 updated_at = 7;
+  string role = 6;       // User role
+  int64 created_at = 7;  // Unix timestamp (renamed from 6)
+  int64 updated_at = 8;  // Renamed from 7
 }
 
 // Update Profile Request
@@ -92,5 +97,6 @@ message VerifyTokenRequest {
 message VerifyTokenResponse {
   bool valid = 1;        // Whether token is valid
   int64 user_id = 2;     // User ID extracted from token
-  int64 expire_at = 3;   // Token expiration timestamp
+  string role = 3;       // User role extracted from token
+  int64 expire_at = 4;   // Token expiration timestamp (renamed from 3)
 }

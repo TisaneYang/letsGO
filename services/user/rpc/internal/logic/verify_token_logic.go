@@ -66,6 +66,12 @@ func (l *VerifyTokenLogic) VerifyToken(in *user.VerifyTokenRequest) (*user.Verif
 			}, nil
 		}
 
+		// Extract role
+		role, _ := claims["role"].(string)
+		if role == "" {
+			role = "user" // Default to user if role not found
+		}
+
 		// Extract expiration time
 		exp, ok := claims["exp"].(float64)
 		if !ok {
@@ -76,11 +82,12 @@ func (l *VerifyTokenLogic) VerifyToken(in *user.VerifyTokenRequest) (*user.Verif
 			}, nil
 		}
 
-		l.Logger.Infof("Token verified successfully: user_id=%d", int64(userId))
+		l.Logger.Infof("Token verified successfully: user_id=%d, role=%s", int64(userId), role)
 
 		return &user.VerifyTokenResponse{
 			Valid:    true,
 			UserId:   int64(userId),
+			Role:     role,
 			ExpireAt: int64(exp),
 		}, nil
 	}

@@ -62,6 +62,12 @@ func (l *RegisterLogic) Register(in *user.RegisterRequest) (*user.RegisterRespon
 
 	// 5. Prepare user data
 	now := time.Now().Unix()
+
+	// SECURITY: Force all registrations to 'user' role
+	// Admin users must be created through secure channels (database or admin panel)
+	// This prevents malicious users from registering as admins
+	role := "user"
+
 	newUser := &model.User{
 		Username:  in.Username,
 		Password:  hashedPassword,
@@ -69,6 +75,7 @@ func (l *RegisterLogic) Register(in *user.RegisterRequest) (*user.RegisterRespon
 		Email:     in.Email,
 		Phone:     in.Phone,
 		Avatar:    "", // Default empty avatar
+		Role:      role,
 		Status:    1,  // 1 = active
 		CreatedAt: now,
 		UpdatedAt: now,
@@ -81,14 +88,14 @@ func (l *RegisterLogic) Register(in *user.RegisterRequest) (*user.RegisterRespon
 		return nil, errorx.ErrDatabase
 	}
 
-	// 7. Generate JWT token for automatic login
-	token, err := l.generateToken(newUser.Id)
+	// 7. Generate JWT token for automatic login (include role)
+	token, err := l.generateToken(newUser.Id, newUser.Role)
 	if err != nil {
 		l.Logger.Errorf("Failed to generate token: %v", err)
 		return nil, errorx.NewCodeError(2007, "Failed to generate token")
 	}
 
-	l.Logger.Infof("User registered successfully: user_id=%d, username=%s", newUser.Id, newUser.Username)
+	l.Logger.Infof("User registered successfully: user_id=%d, username=%s, role=%s", newUser.Id, newUser.Username, newUser.Role)
 
 	return &user.RegisterResponse{
 		UserId: newUser.Id,
@@ -122,8 +129,8 @@ func (l *RegisterLogic) validateRegisterParams(in *user.RegisterRequest) error {
 	return nil
 }
 
-// generateToken generates JWT token for user
-func (l *RegisterLogic) generateToken(userId int64) (string, error) {
+// generateToken generates JWT token for user with role
+func (l *RegisterLogic) generateToken(userId int64, role string) (string, error) {
 	now := time.Now().Unix()
 	accessExpire := l.svcCtx.Config.AuthConf.AccessExpire
 	accessSecret := l.svcCtx.Config.AuthConf.AccessSecret
@@ -132,6 +139,7 @@ func (l *RegisterLogic) generateToken(userId int64) (string, error) {
 	claims["exp"] = now + accessExpire
 	claims["iat"] = now
 	claims["userId"] = userId
+	claims["role"] = role
 
 	token := jwt.New(jwt.SigningMethodHS256)
 	token.Claims = claims

@@ -60,23 +60,24 @@ func (l *LoginLogic) Login(in *user.LoginRequest) (*user.LoginResponse, error) {
 		return nil, errorx.ErrWrongPassword
 	}
 
-	// 5. Generate JWT token
-	token, err := l.generateToken(existingUser.Id)
+	// 5. Generate JWT token (include role)
+	token, err := l.generateToken(existingUser.Id, existingUser.Role)
 	if err != nil {
 		l.Logger.Errorf("Failed to generate token: %v", err)
 		return nil, errorx.NewCodeError(2007, "Failed to generate token")
 	}
 
-	l.Logger.Infof("User logged in successfully: user_id=%d, username=%s", existingUser.Id, existingUser.Username)
+	l.Logger.Infof("User logged in successfully: user_id=%d, username=%s, role=%s", existingUser.Id, existingUser.Username, existingUser.Role)
 
 	return &user.LoginResponse{
 		UserId: existingUser.Id,
 		Token:  token,
+		Role:   existingUser.Role,
 	}, nil
 }
 
-// generateToken generates JWT token for user
-func (l *LoginLogic) generateToken(userId int64) (string, error) {
+// generateToken generates JWT token for user with role
+func (l *LoginLogic) generateToken(userId int64, role string) (string, error) {
 	now := time.Now().Unix()
 	accessExpire := l.svcCtx.Config.AuthConf.AccessExpire
 	accessSecret := l.svcCtx.Config.AuthConf.AccessSecret
@@ -85,6 +86,7 @@ func (l *LoginLogic) generateToken(userId int64) (string, error) {
 	claims["exp"] = now + accessExpire
 	claims["iat"] = now
 	claims["userId"] = userId
+	claims["role"] = role
 
 	token := jwt.New(jwt.SigningMethodHS256)
 	token.Claims = claims

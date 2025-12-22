@@ -64,11 +64,11 @@ service gateway {
 	get /search (ProductSearchReq) returns (ProductSearchResp)
 }
 
-// Admin product endpoints (requires authentication)
+// Admin product endpoints (requires admin authentication)
 @server (
 	prefix:     /api/v1/product
 	group:      product
-	middleware: Auth
+	middleware: AdminAuth
 )
 service gateway {
 	@doc "Add product - Admin creates new product (admin only)"

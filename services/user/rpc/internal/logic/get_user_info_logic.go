@@ -63,6 +63,7 @@ func (l *GetUserInfoLogic) GetUserInfo(in *user.GetUserInfoRequest) (*user.GetUs
 		Email:     existingUser.Email,
 		Phone:     existingUser.Phone,
 		Avatar:    existingUser.Avatar,
+		Role:      existingUser.Role,
 		CreatedAt: existingUser.CreatedAt,
 		UpdatedAt: existingUser.UpdatedAt,
 	}
