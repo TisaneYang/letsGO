@@ -1,11 +1,9 @@
-// Code scaffolded by goctl. Safe to edit.
-// goctl 1.9.2
-
 package svc
 
 import (
 	"letsgo/gateway/internal/config"
 	"letsgo/gateway/internal/middleware"
+	"letsgo/services/cart/rpc/cart_client"
 	"letsgo/services/product/rpc/product_client"
 	"letsgo/services/user/rpc/user_client"
 
@@ -19,6 +17,7 @@ type ServiceContext struct {
 	AdminAuth  rest.Middleware
 	UserRpc    user_client.User
 	ProductRpc product_client.Product
+	CartRpc    cart_client.Cart
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -28,5 +27,6 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		AdminAuth:  middleware.NewAdminAuthMiddleware(c.Auth.AccessSecret).Handle,
 		UserRpc:    user_client.NewUser(zrpc.MustNewClient(c.UserRpc)),
 		ProductRpc: product_client.NewProduct(zrpc.MustNewClient(c.ProductRpc)),
+		CartRpc:    cart_client.NewCart(zrpc.MustNewClient(c.CartRpc)),
 	}
 }

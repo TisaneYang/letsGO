@@ -35,13 +35,13 @@ type CancelOrderResp struct {
 }
 
 type CartItem struct {
-	Id        int64   `json:"id"`        // Cart item ID
 	ProductId int64   `json:"productId"` // Product reference
 	Name      string  `json:"name"`
 	Price     float64 `json:"price"` // Price at time of adding
 	Quantity  int64   `json:"quantity"`
-	Image     string  `json:"image"` // First product image
-	Stock     int64   `json:"stock"` // Current available stock
+	Image     string  `json:"image"`     // First product image
+	Stock     int64   `json:"stock"`     // Current available stock
+	Available bool    `json:"available"` // Is product still available
 }
 
 type CartResp struct {
@@ -226,7 +226,7 @@ type RegisterResp struct {
 }
 
 type RemoveCartReq struct {
-	ItemId int64 `path:"itemId" validate:"required,min=1"`
+	ProductId int64 `path:"productId" validate:"required,min=1"`
 }
 
 type RemoveCartResp struct {

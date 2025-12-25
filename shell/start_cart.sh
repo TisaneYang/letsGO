@@ -1,0 +1,1 @@
+env -i PATH="$PATH" HOME="$HOME" GOROOT="$GOROOT" GOPATH="$GOPATH" ./bin/cart-rpc -f ./services/cart/rpc/etc/cart.yaml

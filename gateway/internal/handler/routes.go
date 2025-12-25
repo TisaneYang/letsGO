@@ -42,7 +42,7 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				{
 					// Remove from cart - Delete item from cart
 					Method:  http.MethodDelete,
-					Path:    "/remove/:itemId",
+					Path:    "/remove/:productId",
 					Handler: cart.RemoveFromCartHandler(serverCtx),
 				},
 				{

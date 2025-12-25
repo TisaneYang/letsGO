@@ -1,6 +1,3 @@
-// Code scaffolded by goctl. Safe to edit.
-// goctl 1.9.2
-
 package cart
 
 import (
@@ -8,6 +5,7 @@ import (
 
 	"letsgo/gateway/internal/svc"
 	"letsgo/gateway/internal/types"
+	"letsgo/services/cart/rpc/cart"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -28,7 +26,35 @@ func NewGetCartLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetCartLo
 }
 
 func (l *GetCartLogic) GetCart() (resp *types.CartResp, err error) {
-	// todo: add your logic here and delete this line
+	// Get user ID from context
+	userId := l.ctx.Value("userId").(int64)
 
-	return
+	// Call Cart RPC service
+	cartResp, err := l.svcCtx.CartRpc.GetCart(l.ctx, &cart.GetCartRequest{
+		UserId: userId,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert RPC response to API response
+	items := make([]types.CartItem, 0, len(cartResp.Items))
+	for _, item := range cartResp.Items {
+		items = append(items, types.CartItem{
+			ProductId: item.ProductId,
+			Name:      item.Name,
+			Price:     item.Price,
+			Quantity:  item.Quantity,
+			Image:     item.Image,
+			Stock:     item.Stock,
+			Available: item.Available,
+		})
+	}
+
+	return &types.CartResp{
+		Items:      items,
+		TotalPrice: cartResp.TotalPrice,
+		TotalCount: cartResp.TotalCount,
+	}, nil
 }
+

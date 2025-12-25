@@ -103,7 +103,7 @@ service gateway {
 
 	@doc "Remove from cart - Delete item from cart"
 	@handler removeFromCart
-	delete /remove/:itemId (RemoveCartReq) returns (RemoveCartResp)
+	delete /remove/:productId (RemoveCartReq) returns (RemoveCartResp)
 
 	@doc "Clear cart - Remove all items from cart"
 	@handler clearCart
@@ -309,7 +309,7 @@ type (
 	}
 	// Remove item from cart
 	RemoveCartReq {
-		ItemId int64 `path:"itemId" validate:"required,min=1"`
+		ProductId int64 `path:"productId" validate:"required,min=1"`
 	}
 	RemoveCartResp {
 		Success bool `json:"success"`
@@ -320,13 +320,13 @@ type (
 	}
 	// Cart item model
 	CartItem {
-		Id        int64   `json:"id"` // Cart item ID
 		ProductId int64   `json:"productId"` // Product reference
 		Name      string  `json:"name"`
 		Price     float64 `json:"price"` // Price at time of adding
 		Quantity  int64   `json:"quantity"`
 		Image     string  `json:"image"` // First product image
 		Stock     int64   `json:"stock"` // Current available stock
+		Available bool    `json:"available"` // Is product still available
 	}
 )
 
