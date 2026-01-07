@@ -27,11 +27,10 @@ DBPool:
 # ========================================
 # Redis Cache
 # ========================================
-Redis:
-  Host: 127.0.0.1:6379
-  Type: node
-  Pass: ""
-  DB: 4                  # Use database 4 for order service
+RedisConf:
+  - Host: 127.0.0.1:6379
+    Type: node
+    Pass: ""
 
 # ========================================
 # Kafka - Message Queue
@@ -47,6 +46,7 @@ Kafka:
     OrderShipped: order.shipped        # Published when order is shipped
     OrderCompleted: order.completed    # Published when order is completed
     OrderCancelled: order.cancelled    # Published when order is cancelled
+    OrderStatusChanged: order.status.changed  # Published when order status changes
 
 # ========================================
 # Related Services RPC

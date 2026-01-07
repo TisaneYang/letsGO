@@ -199,6 +199,14 @@ type ProductSearchResp struct {
 	Products []Product `json:"products"`
 }
 
+type QueryOrderByNoReq struct {
+	OrderNo string `path:"orderNo" validate:"required,min=1"`
+}
+
+type QueryOrderByNoResp struct {
+	Order Order `json:"order"`
+}
+
 type QueryPaymentReq struct {
 	OrderId int64 `path:"orderId" validate:"required,min=1"`
 }

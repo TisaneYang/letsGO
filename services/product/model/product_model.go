@@ -36,6 +36,9 @@ type (
 		// UpdateStock updates product stock (for order processing)
 		UpdateStock(ctx context.Context, productId int64, quantity int64) (int64, string, error)
 
+		// BatchUpdateStock updates multiple products' stock in a transaction
+		BatchUpdateStock(ctx context.Context, items []StockUpdateItem) ([]StockUpdateResult, error)
+
 		// CheckStock checks if products are in stock (batch check)
 		CheckStock(ctx context.Context, productIds []int64) (map[int64]int64, error)
 
@@ -383,6 +386,78 @@ func (m *customProductModel) IncrementSales(ctx context.Context, productId int64
 	}
 
 	return newSales, category, nil
+}
+
+// StockUpdateItem represents a single stock update operation
+type StockUpdateItem struct {
+	ProductId int64
+	Quantity  int64
+}
+
+// StockUpdateResult represents the result of a stock update
+type StockUpdateResult struct {
+	ProductId int64
+	NewStock  int64
+}
+
+// BatchUpdateStock updates multiple products' stock in a single transaction
+// All updates succeed or all fail (atomic operation)
+func (m *customProductModel) BatchUpdateStock(ctx context.Context, items []StockUpdateItem) ([]StockUpdateResult, error) {
+	if len(items) == 0 {
+		return []StockUpdateResult{}, nil
+	}
+
+	// Get raw database connection for transaction
+	db, err := m.conn.RawDB()
+	if err != nil {
+		return nil, err
+	}
+
+	// Start transaction
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		}
+	}()
+
+	results := make([]StockUpdateResult, 0, len(items))
+
+	// Update each product's stock
+	query := `UPDATE products
+			  SET stock = stock + $1, updated_at = EXTRACT(EPOCH FROM NOW())::BIGINT
+			  WHERE id = $2 AND status = 1 AND stock + $1 >= 0
+			  RETURNING stock`
+
+	for _, item := range items {
+		var newStock int64
+		err = tx.QueryRowContext(ctx, query, item.Quantity, item.ProductId).Scan(&newStock)
+
+		if err == sql.ErrNoRows {
+			// Product not found or insufficient stock
+			return nil, ErrInsufficientStock
+		}
+
+		if err != nil {
+			return nil, err
+		}
+
+		results = append(results, StockUpdateResult{
+			ProductId: item.ProductId,
+			NewStock:  newStock,
+		})
+	}
+
+	// Commit transaction
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return results, nil
 }
 
 // ErrNotFound is returned when a product is not found

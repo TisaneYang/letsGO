@@ -19,14 +19,15 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Product_AddProduct_FullMethodName     = "/product.Product/AddProduct"
-	Product_UpdateProduct_FullMethodName  = "/product.Product/UpdateProduct"
-	Product_GetProduct_FullMethodName     = "/product.Product/GetProduct"
-	Product_ListProducts_FullMethodName   = "/product.Product/ListProducts"
-	Product_SearchProducts_FullMethodName = "/product.Product/SearchProducts"
-	Product_UpdateStock_FullMethodName    = "/product.Product/UpdateStock"
-	Product_CheckStock_FullMethodName     = "/product.Product/CheckStock"
-	Product_IncrementSales_FullMethodName = "/product.Product/IncrementSales"
+	Product_AddProduct_FullMethodName       = "/product.Product/AddProduct"
+	Product_UpdateProduct_FullMethodName    = "/product.Product/UpdateProduct"
+	Product_GetProduct_FullMethodName       = "/product.Product/GetProduct"
+	Product_ListProducts_FullMethodName     = "/product.Product/ListProducts"
+	Product_SearchProducts_FullMethodName   = "/product.Product/SearchProducts"
+	Product_UpdateStock_FullMethodName      = "/product.Product/UpdateStock"
+	Product_CheckStock_FullMethodName       = "/product.Product/CheckStock"
+	Product_IncrementSales_FullMethodName   = "/product.Product/IncrementSales"
+	Product_BatchUpdateStock_FullMethodName = "/product.Product/BatchUpdateStock"
 )
 
 // ProductClient is the client API for Product service.
@@ -49,6 +50,8 @@ type ProductClient interface {
 	CheckStock(ctx context.Context, in *CheckStockRequest, opts ...grpc.CallOption) (*CheckStockResponse, error)
 	// Increment product sales count (called by order service after order completion)
 	IncrementSales(ctx context.Context, in *IncrementSalesRequest, opts ...grpc.CallOption) (*IncrementSalesResponse, error)
+	// Batch update stock for multiple products (transactional)
+	BatchUpdateStock(ctx context.Context, in *BatchUpdateStockRequest, opts ...grpc.CallOption) (*BatchUpdateStockResponse, error)
 }
 
 type productClient struct {
@@ -139,6 +142,16 @@ func (c *productClient) IncrementSales(ctx context.Context, in *IncrementSalesRe
 	return out, nil
 }
 
+func (c *productClient) BatchUpdateStock(ctx context.Context, in *BatchUpdateStockRequest, opts ...grpc.CallOption) (*BatchUpdateStockResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BatchUpdateStockResponse)
+	err := c.cc.Invoke(ctx, Product_BatchUpdateStock_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProductServer is the server API for Product service.
 // All implementations must embed UnimplementedProductServer
 // for forward compatibility.
@@ -159,6 +172,8 @@ type ProductServer interface {
 	CheckStock(context.Context, *CheckStockRequest) (*CheckStockResponse, error)
 	// Increment product sales count (called by order service after order completion)
 	IncrementSales(context.Context, *IncrementSalesRequest) (*IncrementSalesResponse, error)
+	// Batch update stock for multiple products (transactional)
+	BatchUpdateStock(context.Context, *BatchUpdateStockRequest) (*BatchUpdateStockResponse, error)
 	mustEmbedUnimplementedProductServer()
 }
 
@@ -192,6 +207,9 @@ func (UnimplementedProductServer) CheckStock(context.Context, *CheckStockRequest
 }
 func (UnimplementedProductServer) IncrementSales(context.Context, *IncrementSalesRequest) (*IncrementSalesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method IncrementSales not implemented")
+}
+func (UnimplementedProductServer) BatchUpdateStock(context.Context, *BatchUpdateStockRequest) (*BatchUpdateStockResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BatchUpdateStock not implemented")
 }
 func (UnimplementedProductServer) mustEmbedUnimplementedProductServer() {}
 func (UnimplementedProductServer) testEmbeddedByValue()                 {}
@@ -358,6 +376,24 @@ func _Product_IncrementSales_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Product_BatchUpdateStock_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchUpdateStockRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServer).BatchUpdateStock(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Product_BatchUpdateStock_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServer).BatchUpdateStock(ctx, req.(*BatchUpdateStockRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Product_ServiceDesc is the grpc.ServiceDesc for Product service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -396,6 +432,10 @@ var Product_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "IncrementSales",
 			Handler:    _Product_IncrementSales_Handler,
+		},
+		{
+			MethodName: "BatchUpdateStock",
+			Handler:    _Product_BatchUpdateStock_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

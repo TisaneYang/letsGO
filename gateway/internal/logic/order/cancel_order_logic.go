@@ -1,6 +1,3 @@
-// Code scaffolded by goctl. Safe to edit.
-// goctl 1.9.2
-
 package order
 
 import (
@@ -8,6 +5,7 @@ import (
 
 	"letsgo/gateway/internal/svc"
 	"letsgo/gateway/internal/types"
+	"letsgo/services/order/rpc/order"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -28,7 +26,20 @@ func NewCancelOrderLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Cance
 }
 
 func (l *CancelOrderLogic) CancelOrder(req *types.CancelOrderReq) (resp *types.CancelOrderResp, err error) {
-	// todo: add your logic here and delete this line
+	// Get user ID from context (set by Auth middleware)
+	userId := l.ctx.Value("userId").(int64)
 
-	return
+	// Call Order RPC service
+	rpcResp, err := l.svcCtx.OrderRpc.CancelOrder(l.ctx, &order.CancelOrderRequest{
+		OrderId: req.Id,
+		UserId:  userId,
+	})
+	if err != nil {
+		l.Logger.Errorf("failed to cancel order: %v", err)
+		return nil, err
+	}
+
+	return &types.CancelOrderResp{
+		Success: rpcResp.Success,
+	}, nil
 }

@@ -4,6 +4,7 @@ import (
 	"letsgo/gateway/internal/config"
 	"letsgo/gateway/internal/middleware"
 	"letsgo/services/cart/rpc/cart_client"
+	"letsgo/services/order/rpc/order_client"
 	"letsgo/services/product/rpc/product_client"
 	"letsgo/services/user/rpc/user_client"
 
@@ -18,6 +19,7 @@ type ServiceContext struct {
 	UserRpc    user_client.User
 	ProductRpc product_client.Product
 	CartRpc    cart_client.Cart
+	OrderRpc   order_client.Order
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -28,5 +30,6 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		UserRpc:    user_client.NewUser(zrpc.MustNewClient(c.UserRpc)),
 		ProductRpc: product_client.NewProduct(zrpc.MustNewClient(c.ProductRpc)),
 		CartRpc:    cart_client.NewCart(zrpc.MustNewClient(c.CartRpc)),
+		OrderRpc:   order_client.NewOrder(zrpc.MustNewClient(c.OrderRpc)),
 	}
 }

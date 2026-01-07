@@ -84,6 +84,12 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Path:    "/list",
 					Handler: order.ListOrdersHandler(serverCtx),
 				},
+				{
+					// Query order by number - Search order by order number
+					Method:  http.MethodGet,
+					Path:    "/query/:orderNo",
+					Handler: order.QueryOrderByNoHandler(serverCtx),
+				},
 			}...,
 		),
 		rest.WithPrefix("/api/v1/order"),

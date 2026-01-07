@@ -134,6 +134,10 @@ service gateway {
 	@doc "Cancel order - Cancel pending order"
 	@handler cancelOrder
 	put /cancel/:id (CancelOrderReq) returns (CancelOrderResp)
+
+	@doc "Query order by number - Search order by order number"
+	@handler queryOrderByNo
+	get /query/:orderNo (QueryOrderByNoReq) returns (QueryOrderByNoResp)
 }
 
 // ========================================
@@ -369,6 +373,13 @@ type (
 	}
 	CancelOrderResp {
 		Success bool `json:"success"`
+	}
+	// Query order by order number
+	QueryOrderByNoReq {
+		OrderNo string `path:"orderNo" validate:"required,min=1"`
+	}
+	QueryOrderByNoResp {
+		Order Order `json:"order"`
 	}
 	// Order item in create request
 	OrderItemReq {

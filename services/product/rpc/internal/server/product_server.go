@@ -70,3 +70,9 @@ func (s *ProductServer) IncrementSales(ctx context.Context, in *product.Incremen
 	l := logic.NewIncrementSalesLogic(ctx, s.svcCtx)
 	return l.IncrementSales(in)
 }
+
+// Batch update stock for multiple products (transactional)
+func (s *ProductServer) BatchUpdateStock(ctx context.Context, in *product.BatchUpdateStockRequest) (*product.BatchUpdateStockResponse, error) {
+	l := logic.NewBatchUpdateStockLogic(ctx, s.svcCtx)
+	return l.BatchUpdateStock(in)
+}
