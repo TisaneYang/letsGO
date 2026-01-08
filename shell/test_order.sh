@@ -21,6 +21,12 @@ unset all_proxy
 unset ALL_PROXY
 
 BASE_URL="http://localhost:8888"
+KAFKA_CONTAINER="letsgo-kafka"
+KAFKA_TOPICS=(
+    "order.created"
+    "order.cancelled"
+    "order.status.changed"
+)
 
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}Order Service Testing${NC}"
@@ -34,6 +40,78 @@ print_result() {
     echo -e "${GREEN}[TEST]${NC} $test_name"
     echo "$result" | python3 -m json.tool 2>/dev/null || echo "$result"
     echo
+}
+
+# Function to check Kafka messages for a specific topic
+check_kafka_messages() {
+    local topic=$1
+    local search_key=$2
+    local timeout=${3:-10}
+
+    echo -e "${BLUE}Checking Kafka topic: $topic for key: $search_key${NC}"
+
+    # Read messages from Kafka topic
+    local messages=$(docker exec $KAFKA_CONTAINER kafka-console-consumer \
+        --bootstrap-server localhost:9092 \
+        --topic $topic \
+        --from-beginning \
+        --max-messages 100 \
+        --timeout-ms ${timeout}000 2>/dev/null || echo "")
+
+    if [ -z "$messages" ]; then
+        echo -e "${YELLOW}No messages found in topic $topic${NC}"
+        return 1
+    fi
+
+    # Count total messages
+    local total_count=$(echo "$messages" | wc -l)
+    echo -e "${BLUE}Total messages in topic: $total_count${NC}"
+
+    # Search for the key in messages (case-insensitive)
+    local found=$(echo "$messages" | grep -i "$search_key" | wc -l)
+
+    if [ "$found" -gt 0 ]; then
+        echo -e "${GREEN}✓ Found $found message(s) containing '$search_key' in topic $topic${NC}"
+        echo -e "${BLUE}Message details:${NC}"
+        echo "$messages" | grep -i "$search_key" | tail -3 | while read -r line; do
+            echo "$line" | python3 -m json.tool 2>/dev/null || echo "$line"
+        done
+        echo
+        return 0
+    else
+        echo -e "${RED}✗ No messages found containing '$search_key' in topic $topic${NC}"
+        echo -e "${YELLOW}Showing last 3 messages from topic:${NC}"
+        echo "$messages" | tail -3 | while read -r line; do
+            echo "$line" | python3 -m json.tool 2>/dev/null || echo "$line"
+        done
+        echo
+        return 1
+    fi
+}
+
+# Function to verify Kafka event
+verify_kafka_event() {
+    local event_type=$1
+    local search_key=$2
+    local topic=$3
+
+    echo -e "${YELLOW}========================================${NC}"
+    echo -e "${YELLOW}Verifying Kafka Event: $event_type${NC}"
+    echo -e "${YELLOW}========================================${NC}"
+
+    # Give Kafka a moment to process the event
+    sleep 2
+
+    if check_kafka_messages "$topic" "$search_key" 10; then
+        echo -e "${GREEN}✓ Kafka event verification PASSED for $event_type${NC}"
+        echo
+        return 0
+    else
+        echo -e "${RED}✗ Kafka event verification FAILED for $event_type${NC}"
+        echo -e "${YELLOW}This might be normal if the event was published earlier or Kafka is not configured${NC}"
+        echo
+        return 1
+    fi
 }
 
 # Function to print section header
@@ -118,6 +196,9 @@ ORDER_NO_1=$(echo $CREATE_ORDER_1 | grep -o '"orderNo":"[^"]*"' | cut -d'"' -f4)
 
 if [ -n "$ORDER_ID_1" ]; then
     echo -e "${GREEN}Created order with ID: $ORDER_ID_1, Order No: $ORDER_NO_1${NC}"
+
+    # Verify Kafka event for order creation
+    verify_kafka_event "Order Created" "$ORDER_NO_1" "order.created"
 else
     echo -e "${RED}Failed to create order${NC}"
 fi
@@ -151,6 +232,9 @@ ORDER_NO_2=$(echo $CREATE_ORDER_2 | grep -o '"orderNo":"[^"]*"' | cut -d'"' -f4)
 
 if [ -n "$ORDER_ID_2" ]; then
     echo -e "${GREEN}Created order with ID: $ORDER_ID_2, Order No: $ORDER_NO_2${NC}"
+
+    # Verify Kafka event for second order creation
+    verify_kafka_event "Order Created (2nd)" "$ORDER_NO_2" "order.created"
 else
     echo -e "${RED}Failed to create second order${NC}"
 fi
@@ -212,6 +296,9 @@ if [ -n "$ORDER_ID_2" ]; then
     CANCEL_RESULT=$(curl -s -X PUT "${BASE_URL}/api/v1/order/cancel/${ORDER_ID_2}" \
       -H "Authorization: Bearer $TOKEN")
     print_result "Cancel Order" "$CANCEL_RESULT"
+
+    # Verify Kafka event for order cancellation
+    verify_kafka_event "Order Cancelled" "$ORDER_NO_2" "order.cancelled"
 
     # 11. Verify order cancellation
     echo -e "${BLUE}11. Verifying order cancellation...${NC}"
@@ -325,5 +412,54 @@ echo -e "  - Order Creation: Single item, Multiple items"
 echo -e "  - Order Query: Detail, List, Query by Number"
 echo -e "  - Order Cancellation: Cancel and Verify"
 echo -e "  - Edge Cases: Invalid IDs, Missing Auth, Invalid Data"
+echo -e "  - Kafka Events: Order Created, Order Cancelled"
 echo
 echo -e "${BLUE}Note: Check the response codes and messages above to verify each test${NC}"
+echo
+
+# ========================================
+# Part 6: Kafka Event Summary
+# ========================================
+print_section "Part 6: Kafka Event Summary - All Topics"
+
+echo -e "${BLUE}Listing all Kafka topics...${NC}"
+TOPICS=$(docker exec $KAFKA_CONTAINER kafka-topics --bootstrap-server localhost:9092 --list 2>/dev/null | grep "order\." || echo "")
+
+if [ -n "$TOPICS" ]; then
+    echo -e "${GREEN}Available order-related topics:${NC}"
+    echo "$TOPICS"
+    echo
+
+    # Show message count for each order topic
+    for topic in $TOPICS; do
+        echo -e "${BLUE}Topic: $topic${NC}"
+        MESSAGE_COUNT=$(docker exec $KAFKA_CONTAINER kafka-run-class kafka.tools.GetOffsetShell \
+            --broker-list localhost:9092 \
+            --topic $topic 2>/dev/null | awk -F ":" '{sum += $3} END {print sum}')
+
+        if [ -n "$MESSAGE_COUNT" ] && [ "$MESSAGE_COUNT" != "0" ]; then
+            echo -e "${GREEN}  Total messages: $MESSAGE_COUNT${NC}"
+
+            # Show last 3 messages from this topic
+            echo -e "${YELLOW}  Last 3 messages:${NC}"
+            docker exec $KAFKA_CONTAINER kafka-console-consumer \
+                --bootstrap-server localhost:9092 \
+                --topic $topic \
+                --from-beginning \
+                --max-messages $MESSAGE_COUNT \
+                --timeout-ms 5000 2>/dev/null | tail -3 | while read -r line; do
+                echo "    $line" | python3 -m json.tool 2>/dev/null || echo "    $line"
+            done
+        else
+            echo -e "${YELLOW}  No messages in this topic${NC}"
+        fi
+        echo
+    done
+else
+    echo -e "${YELLOW}No order-related topics found in Kafka${NC}"
+    echo -e "${YELLOW}This might indicate that Kafka is not properly configured or no events have been published yet${NC}"
+fi
+
+echo -e "${BLUE}========================================${NC}"
+echo -e "${GREEN}Kafka Event Verification Complete!${NC}"
+echo -e "${BLUE}========================================${NC}"
