@@ -156,7 +156,14 @@ service gateway {
 	@doc "Query payment status - Check payment result"
 	@handler queryPayment
 	get /query/:orderId (QueryPaymentReq) returns (QueryPaymentResp)
+}
 
+// Payment callback endpoint (no authentication required - called by payment gateway)
+@server (
+	prefix: /api/v1/payment
+	group:  payment
+)
+service gateway {
 	@doc "Payment callback - Webhook for payment gateway (for testing)"
 	@handler paymentCallback
 	post /callback (PaymentCallbackReq) returns (PaymentCallbackResp)

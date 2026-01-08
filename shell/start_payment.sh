@@ -1,0 +1,1 @@
+env -i PATH="$PATH" HOME="$HOME" GOROOT="$GOROOT" GOPATH="$GOPATH" ./bin/payment-rpc -f ./services/payment/rpc/etc/payment.yaml

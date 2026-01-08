@@ -100,12 +100,6 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			[]rest.Middleware{serverCtx.Auth},
 			[]rest.Route{
 				{
-					// Payment callback - Webhook for payment gateway (for testing)
-					Method:  http.MethodPost,
-					Path:    "/callback",
-					Handler: payment.PaymentCallbackHandler(serverCtx),
-				},
-				{
 					// Create payment - Initiate payment for order
 					Method:  http.MethodPost,
 					Path:    "/create",
@@ -119,6 +113,18 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				},
 			}...,
 		),
+		rest.WithPrefix("/api/v1/payment"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				// Payment callback - Webhook for payment gateway (for testing)
+				Method:  http.MethodPost,
+				Path:    "/callback",
+				Handler: payment.PaymentCallbackHandler(serverCtx),
+			},
+		},
 		rest.WithPrefix("/api/v1/payment"),
 	)
 

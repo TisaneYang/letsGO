@@ -5,9 +5,11 @@ package payment
 
 import (
 	"context"
+	"fmt"
 
 	"letsgo/gateway/internal/svc"
 	"letsgo/gateway/internal/types"
+	"letsgo/services/payment/rpc/payment_client"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -28,7 +30,22 @@ func NewPaymentCallbackLogic(ctx context.Context, svcCtx *svc.ServiceContext) *P
 }
 
 func (l *PaymentCallbackLogic) PaymentCallback(req *types.PaymentCallbackReq) (resp *types.PaymentCallbackResp, err error) {
-	// todo: add your logic here and delete this line
+	// Call Payment RPC to process callback
+	callbackResp, err := l.svcCtx.PaymentRpc.PaymentCallback(l.ctx, &payment_client.PaymentCallbackRequest{
+		PaymentNo: req.PaymentNo,
+		OrderId:   req.OrderId,
+		Status:    int32(req.Status),
+		Amount:    req.Amount,
+		TradeNo:   req.TradeNo,
+		Sign:      "", // Signature verification would go here
+	})
+	if err != nil {
+		l.Logger.Errorf("failed to process payment callback: %v", err)
+		return nil, fmt.Errorf("failed to process payment callback: %w", err)
+	}
 
-	return
+	return &types.PaymentCallbackResp{
+		Success: callbackResp.Success,
+		Message: callbackResp.Message,
+	}, nil
 }

@@ -5,9 +5,11 @@ package payment
 
 import (
 	"context"
+	"fmt"
 
 	"letsgo/gateway/internal/svc"
 	"letsgo/gateway/internal/types"
+	"letsgo/services/payment/rpc/payment_client"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -28,7 +30,23 @@ func NewQueryPaymentLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Quer
 }
 
 func (l *QueryPaymentLogic) QueryPayment(req *types.QueryPaymentReq) (resp *types.QueryPaymentResp, err error) {
-	// todo: add your logic here and delete this line
+	// Get payment by order ID
+	paymentResp, err := l.svcCtx.PaymentRpc.GetPaymentByOrderId(l.ctx, &payment_client.GetPaymentByOrderIdRequest{
+		OrderId: req.OrderId,
+	})
+	if err != nil {
+		l.Logger.Errorf("failed to get payment: %v", err)
+		return nil, fmt.Errorf("payment not found: %w", err)
+	}
 
-	return
+	payment := paymentResp.Payment
+	return &types.QueryPaymentResp{
+		PaymentId:   payment.Id,
+		PaymentNo:   payment.PaymentNo,
+		OrderId:     payment.OrderId,
+		Status:      int(payment.Status),
+		Amount:      payment.Amount,
+		PaymentType: int(payment.PaymentType),
+		PaidAt:      payment.PaidAt,
+	}, nil
 }

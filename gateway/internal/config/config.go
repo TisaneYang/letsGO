@@ -14,6 +14,7 @@ type Config struct {
 	ProductRpc zrpc.RpcClientConf
 	CartRpc    zrpc.RpcClientConf
 	OrderRpc   zrpc.RpcClientConf
+	PaymentRpc zrpc.RpcClientConf
 
 	// JWT Authentication
 	Auth struct {

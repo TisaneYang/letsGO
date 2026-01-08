@@ -27,11 +27,11 @@ DBPool:
 # ========================================
 # Redis Cache
 # ========================================
-Redis:
-  Host: 127.0.0.1:6379
-  Type: node
-  Pass: ""
-  DB: 5                  # Use database 5 for payment service
+RedisConf:
+  - Host: 127.0.0.1:6379
+    Type: node
+    Pass: ""
+    DB: 5                  # Use database 5 for payment service
 
 # ========================================
 # Kafka - Payment Events
