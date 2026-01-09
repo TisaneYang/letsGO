@@ -19,7 +19,7 @@ import (
 func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 	server.AddRoutes(
 		rest.WithMiddlewares(
-			[]rest.Middleware{serverCtx.Auth},
+			[]rest.Middleware{serverCtx.Auth, serverCtx.Timeout},
 			[]rest.Route{
 				{
 					// Get cart - Retrieve user's shopping cart
@@ -58,7 +58,7 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 
 	server.AddRoutes(
 		rest.WithMiddlewares(
-			[]rest.Middleware{serverCtx.Auth},
+			[]rest.Middleware{serverCtx.Auth, serverCtx.Timeout},
 			[]rest.Route{
 				{
 					// Cancel order - Cancel pending order
@@ -97,7 +97,7 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 
 	server.AddRoutes(
 		rest.WithMiddlewares(
-			[]rest.Middleware{serverCtx.Auth},
+			[]rest.Middleware{serverCtx.Auth, serverCtx.Timeout},
 			[]rest.Route{
 				{
 					// Create payment - Initiate payment for order
@@ -117,44 +117,50 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 	)
 
 	server.AddRoutes(
-		[]rest.Route{
-			{
-				// Payment callback - Webhook for payment gateway (for testing)
-				Method:  http.MethodPost,
-				Path:    "/callback",
-				Handler: payment.PaymentCallbackHandler(serverCtx),
-			},
-		},
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.Timeout},
+			[]rest.Route{
+				{
+					// Payment callback - Webhook for payment gateway (for testing)
+					Method:  http.MethodPost,
+					Path:    "/callback",
+					Handler: payment.PaymentCallbackHandler(serverCtx),
+				},
+			}...,
+		),
 		rest.WithPrefix("/api/v1/payment"),
 	)
 
 	server.AddRoutes(
-		[]rest.Route{
-			{
-				// Get product detail - View single product information
-				Method:  http.MethodGet,
-				Path:    "/detail/:id",
-				Handler: product.GetProductDetailHandler(serverCtx),
-			},
-			{
-				// List products - Get paginated list of products
-				Method:  http.MethodGet,
-				Path:    "/list",
-				Handler: product.ListProductsHandler(serverCtx),
-			},
-			{
-				// Search products - Search by keyword
-				Method:  http.MethodGet,
-				Path:    "/search",
-				Handler: product.SearchProductsHandler(serverCtx),
-			},
-		},
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.Timeout},
+			[]rest.Route{
+				{
+					// Get product detail - View single product information
+					Method:  http.MethodGet,
+					Path:    "/detail/:id",
+					Handler: product.GetProductDetailHandler(serverCtx),
+				},
+				{
+					// List products - Get paginated list of products
+					Method:  http.MethodGet,
+					Path:    "/list",
+					Handler: product.ListProductsHandler(serverCtx),
+				},
+				{
+					// Search products - Search by keyword
+					Method:  http.MethodGet,
+					Path:    "/search",
+					Handler: product.SearchProductsHandler(serverCtx),
+				},
+			}...,
+		),
 		rest.WithPrefix("/api/v1/product"),
 	)
 
 	server.AddRoutes(
 		rest.WithMiddlewares(
-			[]rest.Middleware{serverCtx.AdminAuth},
+			[]rest.Middleware{serverCtx.AdminAuth, serverCtx.Timeout},
 			[]rest.Route{
 				{
 					// Add product - Admin creates new product (admin only)
@@ -174,26 +180,29 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 	)
 
 	server.AddRoutes(
-		[]rest.Route{
-			{
-				// User login - Authenticates user and returns JWT token
-				Method:  http.MethodPost,
-				Path:    "/login",
-				Handler: user.LoginHandler(serverCtx),
-			},
-			{
-				// User registration - Creates a new user account
-				Method:  http.MethodPost,
-				Path:    "/register",
-				Handler: user.RegisterHandler(serverCtx),
-			},
-		},
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.Timeout},
+			[]rest.Route{
+				{
+					// User login - Authenticates user and returns JWT token
+					Method:  http.MethodPost,
+					Path:    "/login",
+					Handler: user.LoginHandler(serverCtx),
+				},
+				{
+					// User registration - Creates a new user account
+					Method:  http.MethodPost,
+					Path:    "/register",
+					Handler: user.RegisterHandler(serverCtx),
+				},
+			}...,
+		),
 		rest.WithPrefix("/api/v1/user"),
 	)
 
 	server.AddRoutes(
 		rest.WithMiddlewares(
-			[]rest.Middleware{serverCtx.Auth},
+			[]rest.Middleware{serverCtx.Auth, serverCtx.Timeout},
 			[]rest.Route{
 				{
 					// Get user profile - Returns current user information

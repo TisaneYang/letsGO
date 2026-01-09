@@ -21,4 +21,7 @@ type Config struct {
 		AccessSecret string
 		AccessExpire int64
 	}
+
+	// Request Timeout (in milliseconds)
+	RequestTimeout int64 `json:",default=30000"`
 }

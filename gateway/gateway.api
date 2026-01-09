@@ -13,8 +13,9 @@ info (
 // ========================================
 // Public user endpoints (no authentication required)
 @server (
-	prefix: /api/v1/user // All endpoints will start with /api/v1/user
-	group:  user // Groups handlers into user package
+	prefix:     /api/v1/user // All endpoints will start with /api/v1/user
+	group:      user // Groups handlers into user package
+	middleware: Timeout
 )
 service gateway {
 	@doc "User registration - Creates a new user account"
@@ -30,7 +31,7 @@ service gateway {
 @server (
 	prefix:     /api/v1/user
 	group:      user
-	middleware: Auth // This middleware checks JWT token validity
+	middleware: Auth,Timeout
 )
 service gateway {
 	@doc "Get user profile - Returns current user information"
@@ -47,8 +48,9 @@ service gateway {
 // ========================================
 // Public product endpoints (anyone can view products)
 @server (
-	prefix: /api/v1/product
-	group:  product
+	prefix:     /api/v1/product
+	group:      product
+	middleware: Timeout
 )
 service gateway {
 	@doc "List products - Get paginated list of products"
@@ -68,7 +70,7 @@ service gateway {
 @server (
 	prefix:     /api/v1/product
 	group:      product
-	middleware: AdminAuth
+	middleware: AdminAuth,Timeout
 )
 service gateway {
 	@doc "Add product - Admin creates new product (admin only)"
@@ -86,7 +88,7 @@ service gateway {
 @server (
 	prefix:     /api/v1/cart
 	group:      cart
-	middleware: Auth
+	middleware: Auth,Timeout
 )
 service gateway {
 	@doc "Get cart - Retrieve user's shopping cart"
@@ -116,7 +118,7 @@ service gateway {
 @server (
 	prefix:     /api/v1/order
 	group:      order
-	middleware: Auth
+	middleware: Auth,Timeout
 )
 service gateway {
 	@doc "Create order - Convert cart to order"
@@ -146,7 +148,7 @@ service gateway {
 @server (
 	prefix:     /api/v1/payment
 	group:      payment
-	middleware: Auth
+	middleware: Auth,Timeout
 )
 service gateway {
 	@doc "Create payment - Initiate payment for order"
@@ -160,8 +162,9 @@ service gateway {
 
 // Payment callback endpoint (no authentication required - called by payment gateway)
 @server (
-	prefix: /api/v1/payment
-	group:  payment
+	prefix:     /api/v1/payment
+	group:      payment
+	middleware: Timeout
 )
 service gateway {
 	@doc "Payment callback - Webhook for payment gateway (for testing)"
